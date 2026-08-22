@@ -35,12 +35,12 @@ export default function ShareNoteButton({
   const [isOpen, setIsOpen] = useState(false);
 
   const getShareUrl = () => {
+    if (typeof window !== "undefined" && window.location.origin) {
+      return `${window.location.origin}/share/${noteId}`;
+    }
     const customBase = process.env.NEXT_PUBLIC_APP_URL;
     if (customBase) {
       return `${customBase.replace(/\/$/, "")}/share/${noteId}`;
-    }
-    if (typeof window !== "undefined") {
-      return `${window.location.origin}/share/${noteId}`;
     }
     return `/share/${noteId}`;
   };
