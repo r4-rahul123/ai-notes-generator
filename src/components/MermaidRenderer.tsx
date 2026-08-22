@@ -11,6 +11,7 @@ interface MermaidRendererProps {
  * Robust line-by-line sanitizer for AI-generated Mermaid charts:
  * - Normalizes escaped newlines and linebreaks
  * - Strips markdown backticks
+ * - Strips conflicting inline AI color styles so all nodes have uniform, readable contrast
  * - Correctly wraps all node label text in quotes without creating illegal nested quotes
  * - Handles links, arrow labels (|...|), and shape definitions
  */
@@ -29,6 +30,12 @@ function sanitizeMermaid(code: string): string {
   const processed = lines.map((line) => {
     let l = line.trim();
     if (!l) return "";
+
+    // Skip AI-injected style definitions that cause unreadable pastel fills
+    if (l.startsWith("style ") || l.startsWith("classDef ") || l.startsWith("class ")) {
+      return "";
+    }
+
     if (
       l.startsWith("graph") ||
       l.startsWith("flowchart") ||
@@ -98,16 +105,17 @@ export default function MermaidRenderer({ chart }: MermaidRendererProps) {
           themeVariables: isDark
             ? {
                 darkMode: true,
-                background: "#1e293b",
-                primaryColor: "#2563eb",
+                background: "#0f172a",
+                primaryColor: "#1e293b",
                 primaryTextColor: "#ffffff",
                 primaryBorderColor: "#60a5fa",
-                lineColor: "#93c5fd", // Bright visible blue arrows in dark mode
-                secondaryColor: "#818cf8",
-                tertiaryColor: "#334155",
-                mainBkg: "#0f172a",
+                lineColor: "#93c5fd",
+                secondaryColor: "#1e293b",
+                tertiaryColor: "#0f172a",
+                mainBkg: "#1e293b",
                 nodeBorder: "#60a5fa",
-                clusterBkg: "#1e293b",
+                clusterBkg: "#0f172a",
+                clusterBorder: "#3b82f6",
                 titleColor: "#ffffff",
                 edgeLabelBackground: "#1e293b",
                 actorTextColor: "#ffffff",
@@ -117,12 +125,13 @@ export default function MermaidRenderer({ chart }: MermaidRendererProps) {
               }
             : {
                 darkMode: false,
-                primaryColor: "#dbeafe",
+                background: "#ffffff",
+                primaryColor: "#eff6ff",
                 primaryTextColor: "#0f172a",
-                primaryBorderColor: "#2563eb",
+                primaryBorderColor: "#3b82f6",
                 lineColor: "#2563eb",
-                mainBkg: "#ffffff",
-                nodeBorder: "#2563eb",
+                mainBkg: "#f8fafc",
+                nodeBorder: "#3b82f6",
               },
           securityLevel: "loose",
           suppressErrorRendering: true,
@@ -170,7 +179,7 @@ export default function MermaidRenderer({ chart }: MermaidRendererProps) {
   return (
     <div
       ref={containerRef}
-      className="mermaid-wrapper flex justify-center overflow-x-auto my-6 p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl shadow-xs [&_svg]:max-w-full [&_svg]:h-auto dark:[&_svg_.edgePath_.path]:!stroke-[#93c5fd] dark:[&_svg_.flowchart-link]:!stroke-[#93c5fd] dark:[&_svg_.marker]:!fill-[#93c5fd] dark:[&_svg_.marker]:!stroke-[#93c5fd] dark:[&_svg_.nodeLabel]:!fill-white dark:[&_svg_.edgeLabel]:!fill-slate-200"
+      className="mermaid-wrapper flex justify-center overflow-x-auto my-6 p-4 sm:p-6 bg-slate-50/70 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs [&_svg]:max-w-full [&_svg]:h-auto dark:[&_svg_.edgePath_.path]:!stroke-[#60a5fa] dark:[&_svg_.flowchart-link]:!stroke-[#60a5fa] dark:[&_svg_.marker]:!fill-[#60a5fa] dark:[&_svg_.marker]:!stroke-[#60a5fa] dark:[&_svg_.nodeLabel]:!fill-white dark:[&_svg_.nodeLabel]:!color-white dark:[&_svg_text]:!fill-white dark:[&_svg_.node_rect]:!fill-[#1e293b] dark:[&_svg_.node_rect]:!stroke-[#60a5fa] dark:[&_svg_.node_polygon]:!fill-[#1e293b] dark:[&_svg_.node_polygon]:!stroke-[#60a5fa] dark:[&_svg_.node_circle]:!fill-[#1e293b] dark:[&_svg_.node_circle]:!stroke-[#60a5fa]"
       dangerouslySetInnerHTML={{ __html: svgContent }}
     />
   );
