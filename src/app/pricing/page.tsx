@@ -169,9 +169,6 @@ export default function PricingPage() {
 
           {/* Header */}
           <div className="text-center mb-14 animate-fade-in-up">
-            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-4 py-1.5 rounded-full text-sm font-medium border border-blue-200 dark:border-blue-800 mb-4">
-              <Zap className="h-4 w-4" /> Base Rate: ₹5 / Credit · Huge Bulk Discounts
-            </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-3">
               Buy Study Credits
             </h1>
