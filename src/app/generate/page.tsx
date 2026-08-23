@@ -124,9 +124,19 @@ export default function GeneratePage() {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "Failed to parse PDF");
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(
+          res.status === 413
+            ? "File is too large for upload. Please use a PDF under 15MB."
+            : "Server could not process this PDF file. Please try another PDF."
+        );
+      }
+
+      if (!res.ok) throw new Error(data?.error || "Failed to parse PDF");
 
       setPdfText(data.text);
       setPdfPages(data.pages);
