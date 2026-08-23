@@ -134,6 +134,9 @@ export default function GeneratePage() {
         const name = file.name.replace(".pdf", "").replace(/_|-/g, " ");
         setPdfTopic(name.slice(0, 60));
       }
+      if (!pdfLevel) {
+        setPdfLevel(classLevel || "College / Undergraduate");
+      }
       toast.success(`PDF parsed! ${data.pages} pages extracted ✅`);
     } catch (err: any) {
       toast.error(err.message || "Failed to read PDF");
@@ -152,16 +155,19 @@ export default function GeneratePage() {
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const finalTopic = mode === "pdf" ? pdfTopic : topic;
-    const finalLevel = mode === "pdf" ? pdfLevel : classLevel;
+    const finalTopic =
+      (mode === "pdf" ? pdfTopic : topic) ||
+      (pdfFile ? pdfFile.name.replace(".pdf", "").replace(/_|-/g, " ") : "");
+    const finalLevel =
+      (mode === "pdf" ? pdfLevel : classLevel) || "College / Undergraduate";
     const finalInstructions = mode === "pdf" ? pdfInstructions : additionalInstructions;
 
-    if (!finalTopic || !finalLevel) {
-      toast.error("Please fill in topic and class level.");
+    if (!finalTopic) {
+      toast.error("Please provide a topic or focus area.");
       return;
     }
     if (mode === "pdf" && !pdfText) {
-      toast.error("Please upload and wait for PDF to be parsed first.");
+      toast.error("Please upload and wait for PDF to finish reading.");
       return;
     }
 

@@ -16,33 +16,60 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       return NextResponse.json({ error: "Only PDF files are supported" }, { status: 400 });
     }
 
-    // Max 10MB
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large. Max 10MB allowed." }, { status: 400 });
+    // Max 15MB
+    if (file.size > 15 * 1024 * 1024) {
+      return NextResponse.json({ error: "File too large. Max 15MB allowed." }, { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
 
-    // Using PDFParse from pdf-parse v2
-    const parser = new PDFParse({ data: uint8Array });
-    const textResult = await parser.getText();
+    let extractedText = "";
+    let totalPages = 1;
 
-    const text = textResult?.text?.trim();
-    if (!text || text.length < 20) {
-      return NextResponse.json({ error: "Could not extract text from PDF. Please make sure it's a text-based PDF (not a scanned image)." }, { status: 400 });
+    try {
+      const parser = new PDFParse({ data: uint8Array });
+      const textResult = await parser.getText();
+      extractedText = textResult?.text || "";
+      totalPages = textResult?.total || 1;
+    } catch (parseErr: any) {
+      console.warn("Primary PDFParse failed, attempting buffer recovery:", parseErr);
+      // Fallback: try raw buffer decoding if text stream is standard
+      const rawString = new TextDecoder("utf-8", { fatal: false }).decode(uint8Array);
+      const textMatches = rawString.match(/\(([^()]{3,})\)/g);
+      if (textMatches && textMatches.length > 10) {
+        extractedText = textMatches.map((m) => m.slice(1, -1)).join(" ");
+      }
     }
 
-    // Limit to ~15000 chars to avoid prompt limit
-    const truncated = text.length > 15000 ? text.slice(0, 15000) + "\n\n[Content truncated for processing...]" : text;
+    const cleanText = extractedText
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // remove control chars
+      .replace(/\r\n/g, "\n")
+      .trim();
+
+    if (!cleanText || cleanText.length < 15) {
+      return NextResponse.json(
+        {
+          error:
+            "Could not extract text from this PDF. Please ensure it contains selectable text (not a scanned image or protected PDF).",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Limit to ~14,000 characters to ensure fast, high-quality AI generation within token limits
+    const truncated =
+      cleanText.length > 14000
+        ? cleanText.slice(0, 14000) + "\n\n[...Content summarized for optimal note generation]"
+        : cleanText;
 
     return NextResponse.json({
       text: truncated,
-      pages: textResult.total || 1,
+      pages: totalPages,
       fileName: file.name,
     });
   } catch (error: any) {
