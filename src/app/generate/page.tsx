@@ -188,8 +188,19 @@ export default function GeneratePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate notes");
+
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(
+          res.status === 504
+            ? "Server timed out while processing large PDF. Please try focusing on a specific topic or shorter document."
+            : "Server returned an unexpected format. Please try again."
+        );
+      }
+
+      if (!res.ok) throw new Error(data?.error || "Failed to generate notes");
 
       // Smoothly advance to 100%
       setProgress(100);
@@ -200,7 +211,7 @@ export default function GeneratePage() {
         router.push(`/notes/${data.noteId}`);
       }, 600);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || "Failed to generate notes");
       setLoading(false);
       setProgress(0);
     }

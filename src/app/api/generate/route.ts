@@ -8,6 +8,9 @@ import { GoogleGenAI } from "@google/genai";
 import { parseAiJson } from "@/lib/parseAiJson";
 import { indexDocument } from "@/lib/rag/vectorSearch";
 
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const { userId: clerkId } = await auth();
