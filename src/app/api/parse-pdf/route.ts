@@ -85,11 +85,6 @@ function extractTextFromBuffer(buffer: Buffer): { text: string; pages: number } 
 
 export async function POST(req: Request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
-    }
-
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -112,25 +107,10 @@ export async function POST(req: Request) {
     let extractedText = "";
     let totalPages = 1;
 
-    // Tier 1: Try dynamic pdf-parse if available in runtime
-    try {
-      const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: new Uint8Array(arrayBuffer) });
-      const res = await parser.getText();
-      if (res?.text && res.text.trim().length > 20) {
-        extractedText = res.text;
-        totalPages = res.total || 1;
-      }
-    } catch (e) {
-      console.warn("Dynamic PDFParse skipped, using native stream extractor:", e);
-    }
-
-    // Tier 2: Native pure-JS stream parser
-    if (!extractedText || extractedText.trim().length < 20) {
-      const nativeResult = extractTextFromBuffer(buffer);
-      extractedText = nativeResult.text;
-      totalPages = nativeResult.pages;
-    }
+    // Native pure-JS stream parser
+    const nativeResult = extractTextFromBuffer(buffer);
+    extractedText = nativeResult.text;
+    totalPages = nativeResult.pages;
 
     const cleanText = extractedText
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")

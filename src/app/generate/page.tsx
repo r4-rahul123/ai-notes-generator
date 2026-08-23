@@ -98,17 +98,65 @@ export default function GeneratePage() {
     };
   }, [loading]);
 
+  // Fast Client-Side PDF Text Extractor (Runs directly in the browser with 0ms network latency)
+  const extractPdfTextInBrowser = async (file: File): Promise<{ text: string; pages: number }> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const rawString = new TextDecoder("latin1").decode(new Uint8Array(arrayBuffer));
+    
+    // Count pages
+    const pageMatches = rawString.match(/\/Type\s*\/Page\b/g);
+    const pages = pageMatches ? pageMatches.length : 1;
+    
+    let text = "";
+    const btMatches = rawString.match(/BT[\s\S]*?ET/g);
+    if (btMatches) {
+      for (const bt of btMatches) {
+        const textSegments = bt.match(/\(([^()]*)\)/g);
+        if (textSegments) {
+          const line = textSegments
+            .map((s) => s.slice(1, -1))
+            .join(" ")
+            .trim();
+          if (line) text += line + "\n";
+        }
+        const tjMatches = bt.match(/\[(.*?)\]\s*TJ/g);
+        if (tjMatches) {
+          for (const tj of tjMatches) {
+            const innerTexts = tj.match(/\(([^()]*)\)/g);
+            if (innerTexts) {
+              const line = innerTexts.map((s) => s.slice(1, -1)).join("");
+              if (line) text += line + " ";
+            }
+          }
+          text += "\n";
+        }
+      }
+    }
+
+    if (text.trim().length < 40) {
+      const genericMatches = rawString.match(/\(([^()]{4,})\)/g);
+      if (genericMatches) {
+        text = genericMatches
+          .map((s) => s.slice(1, -1))
+          .filter((s) => /[a-zA-Z0-9]/.test(s))
+          .join(" ");
+      }
+    }
+
+    return { text: text.trim(), pages: Math.max(1, pages) };
+  };
+
   // Handle PDF file selection & parse
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
       toast.error("Only PDF files are supported!");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("File too large! Max 10MB allowed.");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File too large! Max 15MB allowed.");
       return;
     }
 
@@ -117,37 +165,63 @@ export default function GeneratePage() {
     setPdfParsing(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      let extractedText = "";
+      let pages = 1;
 
-      const res = await fetch("/api/parse-pdf", {
-        method: "POST",
-        body: formData,
-      });
-
-      let data: any = null;
+      // 1. Try instant client-side browser extraction first (0ms latency, zero server errors)
       try {
-        data = await res.json();
-      } catch {
-        throw new Error(
-          res.status === 413
-            ? "File is too large for upload. Please use a PDF under 15MB."
-            : "Server could not process this PDF file. Please try another PDF."
-        );
+        const clientResult = await extractPdfTextInBrowser(file);
+        if (clientResult.text && clientResult.text.length > 50) {
+          extractedText = clientResult.text;
+          pages = clientResult.pages;
+        }
+      } catch (cErr) {
+        console.warn("Client extraction skipped:", cErr);
       }
 
-      if (!res.ok) throw new Error(data?.error || "Failed to parse PDF");
+      // 2. Fallback to server-side parser if browser stream was compressed
+      if (!extractedText || extractedText.length < 50) {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      setPdfText(data.text);
-      setPdfPages(data.pages);
+        const res = await fetch("/api/parse-pdf", {
+          method: "POST",
+          body: formData,
+        });
+
+        const rawText = await res.text();
+        let data: any = null;
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          throw new Error("Could not extract text from this PDF. Please ensure it is a text-based PDF.");
+        }
+
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to parse PDF");
+        }
+
+        extractedText = data.text;
+        pages = data.pages || 1;
+      }
+
+      // Limit to ~14,000 chars for optimal AI note generation
+      const truncated =
+        extractedText.length > 14000
+          ? extractedText.slice(0, 14000) + "\n\n[...Content summarized for optimal note generation]"
+          : extractedText;
+
+      setPdfText(truncated);
+      setPdfPages(pages);
+
       if (!pdfTopic) {
-        const name = file.name.replace(".pdf", "").replace(/_|-/g, " ");
+        const name = file.name.replace(/\.pdf$/i, "").replace(/_|-/g, " ");
         setPdfTopic(name.slice(0, 60));
       }
       if (!pdfLevel) {
         setPdfLevel(classLevel || "College / Undergraduate");
       }
-      toast.success(`PDF parsed! ${data.pages} pages extracted ✅`);
+      toast.success(`PDF parsed! ${pages} pages extracted ✅`);
     } catch (err: any) {
       toast.error(err.message || "Failed to read PDF");
       setPdfFile(null);
