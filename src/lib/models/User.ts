@@ -13,7 +13,7 @@ const UserSchema = new Schema(
   {
     clerkId: { type: String, required: true, unique: true },
     email: { type: String, required: true },
-    credits: { type: Number, default: 3 }, // Give 3 free credits initially
+    credits: { type: Number, default: 15 }, // Give 15 free credits on first sign-up
     stripeCustomerId: { type: String },
   },
   { timestamps: true }

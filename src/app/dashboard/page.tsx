@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     user = await User.create({
       clerkId,
       email: "unknown@placeholder.com",
-      credits: 3,
+      credits: 15,
     });
   }
 

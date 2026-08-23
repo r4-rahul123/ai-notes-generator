@@ -11,9 +11,9 @@ const razorpay = new Razorpay({
 });
 
 const packages = {
-  basic: { credits: 5, price: 20000, name: "Basic - 5 Credits" }, // price in paise
-  pro: { credits: 15, price: 50000, name: "Pro - 15 Credits" },
-  ultra: { credits: 50, price: 100000, name: "Ultra - 50 Credits" },
+  starter: { credits: 10, price: 4900, name: "Starter - 10 Credits (₹4.9/credit)" }, // price in paise (₹49)
+  pro: { credits: 30, price: 11900, name: "Pro Scholar - 30 Credits (₹3.9/credit - 21% OFF)" }, // ₹119
+  ultra: { credits: 100, price: 29900, name: "Master Mega - 100 Credits (₹2.99/credit - 40% OFF)" }, // ₹299
 };
 
 export async function POST(req: Request) {
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     await connectToDatabase();
     let user = await User.findOne({ clerkId });
     if (!user) {
-      user = await User.create({ clerkId, email: "unknown@placeholder.com", credits: 3 });
+      user = await User.create({ clerkId, email: "unknown@placeholder.com", credits: 15 });
     }
 
     const options = {
