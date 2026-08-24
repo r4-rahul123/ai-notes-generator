@@ -61,17 +61,25 @@ const customMarkdownComponents = {
       {children}
     </p>
   ),
-  ul: ({ children }: any) => <ul className="space-y-3.5 my-5 pl-2">{children}</ul>,
+  ul: ({ children }: any) => (
+    <ul className="space-y-2.5 my-4 pl-6 list-disc marker:text-blue-500 dark:marker:text-blue-400">
+      {children}
+    </ul>
+  ),
   ol: ({ children }: any) => (
-    <ol className="space-y-3.5 my-5 pl-4 list-decimal marker:text-blue-600 dark:marker:text-blue-400 marker:font-bold">
+    <ol className="space-y-2.5 my-4 pl-6 list-decimal marker:text-blue-600 dark:marker:text-blue-400 marker:font-bold">
       {children}
     </ol>
   ),
   li: ({ children }: any) => (
-    <li className="flex items-start gap-3 text-slate-700 dark:text-slate-300 leading-relaxed text-base">
-      <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400 mt-2 flex-shrink-0" />
-      <span className="flex-1">{children}</span>
+    <li className="text-slate-700 dark:text-slate-200 leading-relaxed text-base pl-1">
+      {children}
     </li>
+  ),
+  strong: ({ children }: any) => (
+    <strong className="font-bold text-slate-950 dark:text-white">
+      {children}
+    </strong>
   ),
   blockquote: ({ children }: any) => (
     <blockquote className="my-6 p-4 sm:p-5 bg-gradient-to-r from-blue-50/80 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/20 border-l-4 border-blue-500 rounded-r-xl italic text-slate-800 dark:text-slate-200 shadow-xs">

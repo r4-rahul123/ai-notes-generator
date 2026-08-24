@@ -6,22 +6,52 @@ import { jsPDF } from "jspdf";
 
 /**
  * Sanitizes strings for jsPDF standard fonts:
- * - Strips emojis and corrupted multi-byte Unicode characters
+ * - Converts special math symbols and greek letters to clean ASCII equivalents
  * - Normalizes quotes, dashes, bullets, and special punctuation to standard ASCII
  * - PRESERVES backticks so code block splitter works perfectly!
  */
 function cleanForPdf(text: string): string {
   if (!text) return "";
   return text
-    .replace(
-      /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,
-      ""
-    )
+    // Replace math symbols and operators
+    .replace(/[×✕]/g, "*")
+    .replace(/[÷]/g, "/")
+    .replace(/[±]/g, "+/-")
+    .replace(/[≤]/g, "<=")
+    .replace(/[≥]/g, ">=")
+    .replace(/[≠]/g, "!=")
+    .replace(/[≈]/g, "~=")
+    .replace(/[→⇒]/g, "->")
+    .replace(/[←⇐]/g, "<-")
+    .replace(/[°]/g, " deg")
+    .replace(/[²]/g, "^2")
+    .replace(/[³]/g, "^3")
+    .replace(/[πΠ]/g, "pi")
+    .replace(/[μµ]/g, "u")
+    .replace(/[Ω]/g, " Ohm")
+    .replace(/[α]/g, "alpha")
+    .replace(/[β]/g, "beta")
+    .replace(/[γ]/g, "gamma")
+    .replace(/[Δ]/g, "Delta")
+    .replace(/[θ]/g, "theta")
+    .replace(/[λ]/g, "lambda")
+    .replace(/[∑]/g, "sum")
+    .replace(/[√]/g, "sqrt")
+    .replace(/[∞]/g, "inf")
+    .replace(/[™®©]/g, "")
+    // Replace typography punctuation
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"')
     .replace(/[\u2013\u2014]/g, "-")
     .replace(/\u2022/g, "-")
-    .replace(/[^\x00-\x7F]/g, "") // Ensure pure ASCII compatibility
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ")
+    // Strip emoji glyphs
+    .replace(
+      /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,
+      ""
+    )
+    .replace(/[^\x00-\x7F]/g, "") // Ensure pure ASCII compatibility for jsPDF standard fonts
     .trim();
 }
 
@@ -424,7 +454,7 @@ export async function GET(
       yPos += 16;
     }
 
-    // ── 4. Important Questions (Questions Only) ──
+    // ── 4. Important Questions & Answers ──
     if (note.importantQuestions && note.importantQuestions.length > 0) {
       checkPageBreak(60);
       doc.setFillColor(255, 228, 230); // Rose-100
@@ -432,26 +462,41 @@ export async function GET(
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(159, 18, 57); // Rose-800
-      doc.text("IMPORTANT EXAM QUESTIONS", margin + 10, yPos + 15);
+      doc.text("IMPORTANT EXAM QUESTIONS & ANSWERS", margin + 10, yPos + 15);
       yPos += 30;
 
       note.importantQuestions.forEach((item: any, idx: number) => {
         const isObj = typeof item === "object" && item !== null;
         const qText = cleanForPdf(isObj ? item.question : String(item)).replace(/`/g, "");
+        const aText = cleanForPdf(isObj ? item.answer || "" : "").replace(/`/g, "");
 
-        checkPageBreak(30);
+        checkPageBreak(40);
 
+        // Question
         doc.setFont("helvetica", "bold");
         doc.setFontSize(9.5);
         doc.setTextColor(15, 23, 42); // Dark slate
         const qLines = doc.splitTextToSize(`Q${idx + 1}. ${qText}`, contentWidth);
         doc.text(qLines, margin, yPos);
-        yPos += qLines.length * 13 + 8;
+        yPos += qLines.length * 13 + 5;
+
+        // Answer (if provided)
+        if (aText) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(51, 65, 85);
+          const aLines = doc.splitTextToSize(`Ans: ${aText}`, contentWidth - 12);
+          checkPageBreak(aLines.length * 12 + 6);
+          doc.text(aLines, margin + 10, yPos);
+          yPos += aLines.length * 12 + 10;
+        } else {
+          yPos += 6;
+        }
       });
       yPos += 14;
     }
 
-    // ── 5. Practice MCQs with Answers Directly Underneath ──
+    // ── 5. Practice MCQs with Options & Solutions ──
     if (note.mcqs && note.mcqs.length > 0) {
       checkPageBreak(60);
       doc.setFillColor(224, 231, 255); // Indigo-100
@@ -459,13 +504,14 @@ export async function GET(
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(55, 48, 163); // Indigo-800
-      doc.text("PRACTICE MCQS & ANSWERS", margin + 10, yPos + 15);
+      doc.text("PRACTICE MCQS & SOLUTIONS", margin + 10, yPos + 15);
       yPos += 30;
 
       note.mcqs.forEach((mcq: any, idx: number) => {
-        checkPageBreak(50);
+        checkPageBreak(60);
         const cleanQ = cleanForPdf(mcq.question).replace(/`/g, "");
         const cleanAns = cleanForPdf(mcq.correctAnswer).replace(/`/g, "");
+        const options = Array.isArray(mcq.options) ? mcq.options : [];
 
         // MCQ Question
         doc.setFont("helvetica", "bold");
@@ -473,23 +519,41 @@ export async function GET(
         doc.setTextColor(15, 23, 42);
         const qLines = doc.splitTextToSize(`${idx + 1}. ${cleanQ}`, contentWidth);
         doc.text(qLines, margin, yPos);
-        yPos += qLines.length * 13 + 4;
+        yPos += qLines.length * 13 + 5;
+
+        // Options List (A, B, C, D)
+        if (options.length > 0) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(71, 85, 105); // Slate-600
+
+          const optionLabels = ["A", "B", "C", "D", "E", "F"];
+          options.forEach((opt: string, optIdx: number) => {
+            const cleanOpt = cleanForPdf(String(opt)).replace(/`/g, "");
+            const label = optionLabels[optIdx] || `${optIdx + 1}`;
+            const optLines = doc.splitTextToSize(`(${label}) ${cleanOpt}`, contentWidth - 20);
+            checkPageBreak(optLines.length * 12 + 3);
+            doc.text(optLines, margin + 12, yPos);
+            yPos += optLines.length * 12 + 3;
+          });
+          yPos += 4;
+        }
 
         // Correct Answer Box directly underneath
         doc.setFont("helvetica", "bold");
         doc.setFontSize(9);
         doc.setTextColor(22, 101, 52); // Green-800
-        const ansLines = doc.splitTextToSize(`Ans: ${cleanAns}`, contentWidth - 20);
+        const ansLines = doc.splitTextToSize(`Correct Answer: ${cleanAns}`, contentWidth - 24);
         const ansHeight = ansLines.length * 12 + 8;
 
-        checkPageBreak(ansHeight + 6);
+        checkPageBreak(ansHeight + 8);
         doc.setFillColor(240, 253, 244); // Green-50
         doc.setDrawColor(187, 247, 208); // Green-200
         doc.setLineWidth(0.5);
-        doc.roundedRect(margin + 4, yPos, contentWidth - 8, ansHeight, 3, 3, "FD");
-        doc.text(ansLines, margin + 12, yPos + 10);
+        doc.roundedRect(margin + 6, yPos, contentWidth - 12, ansHeight, 3, 3, "FD");
+        doc.text(ansLines, margin + 14, yPos + 10);
 
-        yPos += ansHeight + 10;
+        yPos += ansHeight + 14;
       });
     }
 

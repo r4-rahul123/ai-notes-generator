@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Bot,
   GripVertical,
@@ -41,8 +43,8 @@ interface NoteChatProps {
   noteContext: NoteContext;
 }
 
-const DEFAULT_WIDTH = 420;
-const DEFAULT_HEIGHT = 580;
+const DEFAULT_WIDTH = 440;
+const DEFAULT_HEIGHT = 590;
 const MIN_WIDTH = 320;
 const MIN_HEIGHT = 400;
 const MAX_WIDTH = 750;
@@ -88,7 +90,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
   const isResizing = useRef(false);
   const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
-  // Save messages to localStorage (keep last 7 messages = ~3 exchanges)
+  // Save messages to localStorage (keep last 7 messages)
   useEffect(() => {
     try {
       const toSave = messages.slice(-7);
@@ -183,16 +185,6 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
     }
   };
 
-  const formatMessage = (text: string) =>
-    text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      .replace(
-        /`(.*?)`/g,
-        "<code style='background:#f1f5f9;padding:2px 5px;border-radius:4px;font-size:12px;font-family:monospace'>$1</code>"
-      )
-      .replace(/\n/g, "<br/>");
-
   const clearHistory = () => {
     const welcome: Message = {
       role: "assistant",
@@ -222,20 +214,20 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden select-none"
+          className="fixed bottom-6 right-6 z-50 flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
           style={{ width: size.w, height: size.h }}
         >
           {/* Resize Handle (top-left corner) */}
           <div
             onMouseDown={startResize}
-            className="absolute top-0 left-0 w-5 h-5 cursor-nw-resize z-10 flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity"
+            className="absolute top-0 left-0 w-5 h-5 cursor-nw-resize z-10 flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity select-none"
             title="Drag to resize chat window"
           >
             <GripVertical className="h-3 w-3 text-white rotate-90" />
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 flex-shrink-0 text-white">
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 flex-shrink-0 text-white select-none">
             <div className="flex items-center gap-2.5">
               <div className="bg-white/20 rounded-full p-1.5">
                 <Bot className="h-4 w-4 text-white" />
@@ -269,7 +261,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
 
           {/* History Notice */}
           {messages.length > 1 && (
-            <div className="text-center text-xs text-slate-400 dark:text-slate-500 py-1 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 flex-shrink-0 flex items-center justify-center gap-1">
+            <div className="text-center text-xs text-slate-400 dark:text-slate-500 py-1 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 flex-shrink-0 flex items-center justify-center gap-1 select-none">
               <Database className="h-3 w-3 text-indigo-400" />
               Vector-Indexed Context & History Saved
             </div>
@@ -280,7 +272,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                className={`flex gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
               >
                 <div
                   className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
@@ -292,15 +284,24 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
                   {msg.role === "user" ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
                 </div>
 
-                <div className="max-w-[82%] space-y-1.5">
+                <div className="max-w-[85%] space-y-1.5">
                   <div
-                    className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                    className={`px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-sm"
-                        : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-sm shadow-xs"
+                        : "bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/90 text-slate-900 dark:text-slate-100 rounded-tl-sm shadow-xs"
                     }`}
-                    dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
-                  />
+                  >
+                    {msg.role === "user" ? (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    ) : (
+                      <div className="space-y-2 [&_p]:leading-relaxed [&_ul]:space-y-1 [&_ul]:my-1.5 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:space-y-1 [&_ol]:my-1.5 [&_ol]:pl-4 [&_ol]:list-decimal [&_li]:leading-normal [&_strong]:font-bold [&_strong]:text-slate-950 dark:[&_strong]:text-white [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:bg-slate-100 dark:[&_code]:bg-slate-700 [&_code]:text-indigo-600 dark:[&_code]:text-indigo-300 [&_code]:font-mono [&_code]:text-xs [&_pre]:my-2 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:bg-slate-900 [&_pre]:text-slate-100 [&_pre]:text-xs [&_pre]:overflow-x-auto [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold [&_blockquote]:border-l-2 [&_blockquote]:border-blue-500 [&_blockquote]:pl-2.5 [&_blockquote]:my-1.5 [&_blockquote]:italic [&_table]:w-full [&_table]:text-xs [&_th]:border [&_th]:p-1 [&_td]:border [&_td]:p-1">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
 
                   {/* RAG Citation Sources Badge */}
                   {msg.role === "assistant" && msg.sources && msg.sources.length > 0 && (
@@ -316,15 +317,15 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
             ))}
 
             {loading && (
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2.5 items-center">
                 <div className="w-7 h-7 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-blue-600 dark:text-blue-400">
                   <Bot className="h-3.5 w-3.5" />
                 </div>
                 <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm px-4 py-3 shadow-xs">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Sparkles className="h-3 w-3 text-indigo-500 animate-spin" />
-                      Searching vectors & generating...
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-spin" />
+                      Searching document vectors & reasoning...
                     </span>
                   </div>
                 </div>
@@ -335,8 +336,8 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
 
           {/* Suggested Questions */}
           {messages.length === 1 && (
-            <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex-shrink-0">
-              <p className="text-xs text-slate-400 mb-1.5">Try asking:</p>
+            <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex-shrink-0">
+              <p className="text-xs text-slate-400 mb-1.5 font-medium">Try asking:</p>
               <div className="flex flex-wrap gap-2">
                 {[
                   "Summarize key formulas/points",
@@ -349,7 +350,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
                       setInput(q);
                       inputRef.current?.focus();
                     }}
-                    className="text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                    className="text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors font-medium"
                   >
                     {q}
                   </button>
@@ -368,7 +369,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
               onKeyDown={handleKeyDown}
               placeholder="Ask anything (searches vector embeddings)..."
               disabled={loading}
-              className="flex-1 text-sm px-4 py-2.5 rounded-full border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 disabled:opacity-50 bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400"
+              className="flex-1 text-xs sm:text-sm px-4 py-2.5 rounded-full border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 disabled:opacity-50 bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400"
             />
             <button
               onClick={sendMessage}
