@@ -37,12 +37,16 @@ function normalizeNoteMarkdown(text: string): string {
   clean = clean.replace(/\|\s*\|\s*([:-]+)/g, "|\n| $1");
   // Fix squished table data rows: "| Provider || Applications" -> "| Provider |\n| Applications"
   clean = clean.replace(/\|\s*\|\s*([^\s|])/g, "|\n| $1");
+  // Convert standalone block formulas: `\command ...` on its own line -> $$\command ...$$
+  clean = clean.replace(/(?:^|\n)\s*`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`\s*(?:\n|$)/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
+  // Convert inline formulas: `\command ...` -> $\command ...$
+  clean = clean.replace(/`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`/g, (_, p1) => `$${p1.trim()}$`);
   // Unescape backslashes before dollar signs: "\$\mathcal{H}\$" -> "$\mathcal{H}$"
   clean = clean.replace(/\\\$/g, "$");
   // Normalize LaTeX display math \[ ... \] to $$ ... $$
-  clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, "\n\n$$$$$1$$$$\n\n");
+  clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
   // Normalize LaTeX inline math \( ... \) to $ ... $
-  clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, "$$$1$$");
+  clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, (_, p1) => `$${p1.trim()}$`);
   return clean;
 }
 

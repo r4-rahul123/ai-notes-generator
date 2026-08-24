@@ -302,7 +302,13 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
                           remarkPlugins={[remarkGfm, remarkMath]}
                           rehypePlugins={[rehypeKatex]}
                         >
-                          {msg.content.replace(/\\\$/g, "$")}
+                          {msg.content
+                            .replace(/\\n/g, "\n")
+                            .replace(/(?:^|\n)\s*`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`\s*(?:\n|$)/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`)
+                            .replace(/`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`/g, (_, p1) => `$${p1.trim()}$`)
+                            .replace(/\\\$/g, "$")
+                            .replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`)
+                            .replace(/\\\(([\s\S]*?)\\\)/g, (_, p1) => `$${p1.trim()}$`)}
                         </ReactMarkdown>
                       </div>
                     )}

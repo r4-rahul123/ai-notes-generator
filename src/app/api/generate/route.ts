@@ -73,9 +73,9 @@ IMPORTANT FORMATTING RULES for the "content" field:
 - Include a "💡 Key Takeaways" section
 - Include a "⚡ Quick Facts" section with interesting facts
 - Include a "🧠 Memory Tips" section with mnemonics or tricks
-- Use > blockquotes for important definitions
 - Use tables (markdown table format) where data comparison is useful
-- Use \`code blocks\` for formulas or technical notation
+- For formulas, scientific equations, and mathematical notations, use standard LaTeX math syntax: $...$ for inline math (e.g. $E = mc^2$, $\hat{A}$) and $$...$$ on its own line for display equations. NEVER wrap mathematical formulas in code backticks (\`...\`).
+- Use \`code blocks\` ONLY for real programming code (e.g. Python, JavaScript, C++, SQL).
 - Make it engaging, clear, and easy to read
 
 You MUST respond with a RAW JSON object (no markdown code blocks around it). Follow this exact structure:
