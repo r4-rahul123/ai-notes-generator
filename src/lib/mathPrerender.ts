@@ -67,7 +67,7 @@ export function normalizeLatex(text: string): string {
 
 /**
  * Pre-renders all $$ ... $$ and $ ... $ math to KaTeX HTML.
- * The result contains embedded HTML — use `rehype-raw` in ReactMarkdown.
+ * Uses output:"html" (no MathML) to keep output simple for rehype-raw.
  */
 export function preRenderMath(text: string): string {
   if (!text) return "";
@@ -83,6 +83,7 @@ export function preRenderMath(text: string): string {
         throwOnError: false,
         strict: false,
         trust: true,
+        output: "html",
       });
       return `\n\n<div class="katex-display-block overflow-x-auto my-4 py-2 text-center">${html}</div>\n\n`;
     } catch {
@@ -96,11 +97,13 @@ export function preRenderMath(text: string): string {
     // Skip likely non-LaTeX (e.g. prices like $100, $USD)
     if (!trimmed || !/[\\^_{]|[a-zA-Z]{2,}/.test(trimmed)) return match;
     try {
-      return katex.renderToString(trimmed, {
+      const html = katex.renderToString(trimmed, {
         displayMode: false,
         throwOnError: false,
         strict: false,
+        output: "html",
       });
+      return html;
     } catch {
       return match;
     }
@@ -116,4 +119,3 @@ export function preRenderMath(text: string): string {
 export function processMathMarkdown(text: string): string {
   return preRenderMath(normalizeLatex(text));
 }
-
