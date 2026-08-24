@@ -288,8 +288,8 @@ export default async function SharedNotePage({
 
           <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-base">
             <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
+              remarkPlugins={[remarkMath, remarkGfm]}
+              rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
               components={customMarkdownComponents}
             >
               {normalizeNoteMarkdown(note.content)}
@@ -316,8 +316,8 @@ export default async function SharedNotePage({
 
             <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-base">
               <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeKatex]}
+                remarkPlugins={[remarkMath, remarkGfm]}
+                rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
                 components={customMarkdownComponents}
               >
                 {normalizeNoteMarkdown(note.shortNotes)}

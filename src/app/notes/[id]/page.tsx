@@ -302,8 +302,8 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               
               <div className="prose prose-slate dark:prose-invert max-w-none">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
+                  remarkPlugins={[remarkMath, remarkGfm]}
+                  rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
                   components={customMarkdownComponents}
                 >
                   {normalizeNoteMarkdown(note.content)}
@@ -349,8 +349,8 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               </div>
               <div className="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
+                  remarkPlugins={[remarkMath, remarkGfm]}
+                  rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
                   components={customMarkdownComponents}
                 >
                   {normalizeNoteMarkdown(note.shortNotes)}
