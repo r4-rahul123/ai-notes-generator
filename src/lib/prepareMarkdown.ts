@@ -10,7 +10,12 @@ export function prepareMarkdown(text: string): string {
 
   // Helper to safely format math content by replacing | with \vert 
   // to prevent remark-gfm from misinterpreting them as markdown tables.
-  const safeMath = (math: string) => math.replace(/\|/g, "\\vert ");
+  // Also fixes KaTeX parse errors for unbraced macro superscripts (e.g. ^\dagger -> ^{\dagger})
+  const safeMath = (math: string) => {
+    let m = math.replace(/\|/g, "\\vert ");
+    m = m.replace(/(\^|_)\\([a-zA-Z]+)/g, "$1{\\$2}");
+    return m;
+  };
 
   // 3. Handle double-escaped \\( \\) and \\[ \\] from JSON
   clean = clean.replace(/\\\\([[(])([\s\S]*?)\\\\([\])])/g, (_, open, content, close) => {
