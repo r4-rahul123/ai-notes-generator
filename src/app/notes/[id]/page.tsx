@@ -37,38 +37,46 @@ import {
 function normalizeNoteMarkdown(text: string): string {
   if (!text) return "";
   let clean = text.replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
-  // Fix squished table divider rows: "| SaaS || :---" -> "| SaaS |\n| :---"
+
+  // Fix squished table rows
   clean = clean.replace(/\|\s*\|\s*([:-]+)/g, "|\n| $1");
-  // Fix squished table data rows: "| Provider || Applications" -> "| Provider |\n| Applications"
   clean = clean.replace(/\|\s*\|\s*([^\s|])/g, "|\n| $1");
-  // Convert standalone block formulas: `\command ...` on its own line -> $$\command ...$$
-  clean = clean.replace(/(?:^|\n)\s*`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`\s*(?:\n|$)/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
-  // Convert inline formulas: `\command ...` -> $\command ...$
-  clean = clean.replace(/`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`/g, (_, p1) => `$${p1.trim()}$`);
-  // Unescape backslashes before dollar signs: "\$\mathcal{H}\$" -> "$\mathcal{H}$"
+
+  // Unescape \$
   clean = clean.replace(/\\\$/g, "$");
-  // Normalize LaTeX display math \[ ... \] to $$ ... $$
+
+  // Handle double-escaped \\( \\) \\[ \\] from JSON
+  clean = clean.replace(/\\\\([[(])([\s\S]*?)\\\\([\])])/g, (_, open, content, close) => {
+    if (open === "[" && close === "]") return `\n\n$$${content.trim()}$$\n\n`;
+    if (open === "(" && close === ")") return `$${content.trim()}$`;
+    return _;
+  });
+
+  // \[ ... \] -> display math
   clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
-  // Normalize LaTeX inline math \( ... \) to $ ... $
+  // \( ... \) -> inline math
   clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, (_, p1) => `$${p1.trim()}$`);
 
-  // Fix unclosed $ followed by LaTeX math commands (e.g. "$\rho = \psi\rangle\langle\psi")
+  // Backtick-wrapped LaTeX on its own line -> display math
+  clean = clean.replace(/(?:^|\n)\s*`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`\s*(?:\n|$)/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
+  // Inline backtick-wrapped LaTeX -> inline math
+  clean = clean.replace(/`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`/g, (_, p1) => `$${p1.trim()}$`);
+
+  // Fix unclosed $ signs line by line (simple, reliable)
   const lines = clean.split("\n");
-  const processed = lines.map((line) => {
-    const withoutDisplay = line.replace(/\$\$[\s\S]*?\$\$/g, "");
-    const singleDollarCount = (withoutDisplay.match(/(?<!\$)\$(?!\$)/g) || []).length;
-    if (singleDollarCount % 2 !== 0) {
-      return line.replace(/\$([^\$\n]*?\\[a-zA-Z]+[^\$\n]*?)(?=(?:\s+[a-zA-Z]{2,}\s+)|[\.,;\)]|$)/g, (m) => {
-        const count = (m.match(/\$/g) || []).length;
-        if (count % 2 !== 0) {
-          return m + "$";
-        }
-        return m;
-      });
+  const fixed = lines.map((line) => {
+    if (line.trim().startsWith("$$")) return line;
+    let count = 0;
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === "$") {
+        if (line[i + 1] === "$") { i++; }
+        else { count++; }
+      }
     }
+    if (count % 2 !== 0) return line + "$";
     return line;
   });
-  clean = processed.join("\n");
+  clean = fixed.join("\n");
 
   return clean;
 }

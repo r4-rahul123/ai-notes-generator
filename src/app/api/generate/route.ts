@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 /**
  * Server-side LaTeX math sanitizer.
  * Cleans AI-generated content before saving to MongoDB so KaTeX always renders correctly.
+ * Strategy: convert everything to $...$ / $$...$$ which remarkMath handles perfectly.
  */
 function sanitizeMathContent(text: string): string {
   if (!text) return "";
@@ -22,33 +23,43 @@ function sanitizeMathContent(text: string): string {
   // 1. Unescape escaped dollar signs (\$) -> ($)
   clean = clean.replace(/\\\$/g, "$");
 
-  // 2. Normalize LaTeX display math \[ ... \] -> $$ ... $$
+  // 2. Handle double-escaped notation from JSON: \\( ... \\) and \\[ ... \\]
+  //    These come through as literal "\\(" in the parsed string
+  clean = clean.replace(/\\\\([[(])([\s\S]*?)\\\\([\])])/g, (_, open, content, close) => {
+    if (open === "[" && close === "]") return `\n\n$$${content.trim()}$$\n\n`;
+    if (open === "(" && close === ")") return `$${content.trim()}$`;
+    return _;
+  });
+
+  // 3. Normalize single-escaped \[ ... \] -> $$ ... $$  (display math)
   clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
 
-  // 3. Normalize LaTeX inline math \( ... \) -> $ ... $
+  // 4. Normalize single-escaped \( ... \) -> $ ... $  (inline math)
   clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, (_, p1) => `$${p1.trim()}$`);
 
-  // 4. Convert code-backtick wrapped LaTeX formulas on their own line -> display math
+  // 5. Convert code-backtick wrapped LaTeX on its own line -> display math $$...$$
   clean = clean.replace(/(?:^|\n)\s*`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`\s*(?:\n|$)/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
 
-  // 5. Convert inline code-backtick wrapped LaTeX formulas -> inline math
+  // 6. Convert inline code-backtick wrapped LaTeX -> inline math $...$
   clean = clean.replace(/`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`/g, (_, p1) => `$${p1.trim()}$`);
 
-  // 6. Fix unclosed $ followed by LaTeX math commands
+  // 7. Fix unclosed $ signs: for every line, if there's an odd number of $,
+  //    append a closing $ at the end of the line (simplest reliable fix)
   const lines = clean.split("\n");
-  const processed = lines.map((line) => {
+  const fixed = lines.map((line) => {
     if (line.trim().startsWith("$$")) return line;
-    const withoutDisplay = line.replace(/\$\$[^\$]*?\$\$/g, "");
-    const dollarCount = (withoutDisplay.match(/(?<!\$)\$(?!\$)/g) || []).length;
-    if (dollarCount % 2 !== 0) {
-      return line.replace(/(\$(?:[^\$\n]*?\\[a-zA-Z]+[^\$\n]*?))(?=\s+[A-Za-z]{2,}|\s*$|[.,;:!?)\]])/g, (m) => {
-        const cnt = (m.match(/\$/g) || []).length;
-        return cnt % 2 !== 0 ? m + "$" : m;
-      });
+    // Count $ that are not part of $$
+    let count = 0;
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === "$") {
+        if (line[i + 1] === "$") { i++; } // skip $$
+        else { count++; }
+      }
     }
+    if (count % 2 !== 0) return line + "$";
     return line;
   });
-  clean = processed.join("\n");
+  clean = fixed.join("\n");
 
   return clean;
 }
@@ -116,7 +127,7 @@ IMPORTANT FORMATTING RULES for the "content" field:
 - Include a "⚡ Quick Facts" section with interesting facts
 - Include a "🧠 Memory Tips" section with mnemonics or tricks
 - Use tables (markdown table format) where data comparison is useful
-- For formulas, scientific equations, and mathematical notations, use standard LaTeX math syntax: $...$ for inline math (e.g. $E = mc^2$, $\hat{A}$) and $$...$$ on its own line for display equations. NEVER wrap mathematical formulas in code backticks (\`...\`).
+- For ALL mathematical formulas and equations: use \\( ... \\) for INLINE math and \\[ ... \\] on its own line for DISPLAY/BLOCK equations. Examples: inline: \\(E = mc^2\\), \\(\\hat{A}\\), \\(\\rho = |\\psi\\rangle\\langle\\psi|\\). Display: \\[\\frac{d}{dt}|\\psi\\rangle = -\\frac{i}{\\hbar}\\hat{H}|\\psi\\rangle\\]. NEVER use dollar signs $ for math. NEVER wrap formulas in code backticks.
 - Use \`code blocks\` ONLY for real programming code (e.g. Python, JavaScript, C++, SQL).
 - Make it engaging, clear, and easy to read
 
