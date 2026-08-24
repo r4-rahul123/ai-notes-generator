@@ -31,14 +31,14 @@ export async function generateWithFallback(options: {
 
       // Convert Gemini conversation format to Mistral format
       for (const msg of normalizedContents) {
-        const role = msg.role === 'model' ? 'assistant' : 'user';
+        const role = (msg.role === 'model' ? 'assistant' : 'user') as "assistant" | "user";
         const text = msg.parts.map((p: any) => p.text).join('\n');
         messages.push({ role, content: text });
       }
 
       const response = await client.chat.complete({
         model: "mistral-large-latest", // Force Mistral Large
-        messages: messages,
+        messages: messages as any,
         temperature: options.config?.temperature || 0.7,
         responseFormat: options.config?.responseMimeType === "application/json" ? { type: "json_object" } : { type: "text" },
       });
@@ -46,15 +46,15 @@ export async function generateWithFallback(options: {
       const responseText = response.choices?.[0]?.message?.content || "";
       if (responseText) {
         return {
-          text: responseText,
+          text: responseText as string,
           candidates: [
             {
               content: {
-                parts: [{ text: responseText }]
+                parts: [{ text: responseText as string }]
               }
             }
           ]
-        };
+        } as any;
       }
     } catch (err: any) {
       console.warn(`Mistral failed, falling back to Gemini:`, err?.message || err);
