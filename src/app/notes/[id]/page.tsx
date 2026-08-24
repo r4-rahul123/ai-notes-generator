@@ -4,8 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
+import { processMathMarkdown } from "@/lib/mathPrerender";
 import MermaidRenderer from "@/components/MermaidRenderer";
 import MCQSection from "@/components/MCQSection";
 import PDFExportButton from "@/components/PDFExportButton";
@@ -29,57 +29,6 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-/**
- * Normalizes AI markdown output:
- * - Fixes squished/flattened table lines (e.g. "SaaS || :---" -> "SaaS |\n| :---")
- * - Unescapes LaTeX math ($...$, $$...$$) so KaTeX renders equations perfectly
- */
-function normalizeNoteMarkdown(text: string): string {
-  if (!text) return "";
-  let clean = text.replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
-
-  // Fix squished table rows
-  clean = clean.replace(/\|\s*\|\s*([:-]+)/g, "|\n| $1");
-  clean = clean.replace(/\|\s*\|\s*([^\s|])/g, "|\n| $1");
-
-  // Unescape \$
-  clean = clean.replace(/\\\$/g, "$");
-
-  // Handle double-escaped \\( \\) \\[ \\] from JSON
-  clean = clean.replace(/\\\\([[(])([\s\S]*?)\\\\([\])])/g, (_, open, content, close) => {
-    if (open === "[" && close === "]") return `\n\n$$${content.trim()}$$\n\n`;
-    if (open === "(" && close === ")") return `$${content.trim()}$`;
-    return _;
-  });
-
-  // \[ ... \] -> display math
-  clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
-  // \( ... \) -> inline math
-  clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, (_, p1) => `$${p1.trim()}$`);
-
-  // Backtick-wrapped LaTeX on its own line -> display math
-  clean = clean.replace(/(?:^|\n)\s*`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`\s*(?:\n|$)/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
-  // Inline backtick-wrapped LaTeX -> inline math
-  clean = clean.replace(/`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`/g, (_, p1) => `$${p1.trim()}$`);
-
-  // Fix unclosed $ signs line by line (simple, reliable)
-  const lines = clean.split("\n");
-  const fixed = lines.map((line) => {
-    if (line.trim().startsWith("$$")) return line;
-    let count = 0;
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === "$") {
-        if (line[i + 1] === "$") { i++; }
-        else { count++; }
-      }
-    }
-    if (count % 2 !== 0) return line + "$";
-    return line;
-  });
-  clean = fixed.join("\n");
-
-  return clean;
-}
 
 // Custom markdown components for rich, visually attractive note formatting with spacious layout
 const customMarkdownComponents = {
@@ -302,11 +251,11 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               
               <div className="prose prose-slate dark:prose-invert max-w-none">
                 <ReactMarkdown
-                  remarkPlugins={[remarkMath, remarkGfm]}
-                  rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
                   components={customMarkdownComponents}
                 >
-                  {normalizeNoteMarkdown(note.content)}
+                  {processMathMarkdown(note.content)}
                 </ReactMarkdown>
               </div>
             </section>
@@ -349,11 +298,11 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               </div>
               <div className="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <ReactMarkdown
-                  remarkPlugins={[remarkMath, remarkGfm]}
-                  rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
                   components={customMarkdownComponents}
                 >
-                  {normalizeNoteMarkdown(note.shortNotes)}
+                  {processMathMarkdown(note.shortNotes)}
                 </ReactMarkdown>
               </div>
             </section>
