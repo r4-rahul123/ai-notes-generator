@@ -51,6 +51,25 @@ function normalizeNoteMarkdown(text: string): string {
   clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
   // Normalize LaTeX inline math \( ... \) to $ ... $
   clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, (_, p1) => `$${p1.trim()}$`);
+
+  // Fix unclosed $ followed by LaTeX math commands (e.g. "$\rho = \psi\rangle\langle\psi")
+  const lines = clean.split("\n");
+  const processed = lines.map((line) => {
+    const withoutDisplay = line.replace(/\$\$[\s\S]*?\$\$/g, "");
+    const singleDollarCount = (withoutDisplay.match(/(?<!\$)\$(?!\$)/g) || []).length;
+    if (singleDollarCount % 2 !== 0) {
+      return line.replace(/\$([^\$\n]*?\\[a-zA-Z]+[^\$\n]*?)(?=(?:\s+[a-zA-Z]{2,}\s+)|[\.,;\)]|$)/g, (m) => {
+        const count = (m.match(/\$/g) || []).length;
+        if (count % 2 !== 0) {
+          return m + "$";
+        }
+        return m;
+      });
+    }
+    return line;
+  });
+  clean = processed.join("\n");
+
   return clean;
 }
 
