@@ -3,6 +3,8 @@ import Note from "@/lib/models/Note";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import MermaidRenderer from "@/components/MermaidRenderer";
 import MCQSection from "@/components/MCQSection";
 import PDFExportButton from "@/components/PDFExportButton";
@@ -26,7 +28,7 @@ import {
 /**
  * Normalizes AI markdown output:
  * - Fixes squished/flattened table lines (e.g. "SaaS || :---" -> "SaaS |\n| :---")
- * - Ensures real newlines for markdown tables
+ * - Unescapes LaTeX math ($...$, $$...$$) so KaTeX renders equations perfectly
  */
 function normalizeNoteMarkdown(text: string): string {
   if (!text) return "";
@@ -35,6 +37,12 @@ function normalizeNoteMarkdown(text: string): string {
   clean = clean.replace(/\|\s*\|\s*([:-]+)/g, "|\n| $1");
   // Fix squished table data rows: "| Provider || Applications" -> "| Provider |\n| Applications"
   clean = clean.replace(/\|\s*\|\s*([^\s|])/g, "|\n| $1");
+  // Unescape backslashes before dollar signs: "\$\mathcal{H}\$" -> "$\mathcal{H}$"
+  clean = clean.replace(/\\\$/g, "$");
+  // Normalize LaTeX display math \[ ... \] to $$ ... $$
+  clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, "\n\n$$$$$1$$$$\n\n");
+  // Normalize LaTeX inline math \( ... \) to $ ... $
+  clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, "$$$1$$");
   return clean;
 }
 
@@ -249,7 +257,8 @@ export default async function SharedNotePage({
 
           <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-base">
             <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
               components={customMarkdownComponents}
             >
               {normalizeNoteMarkdown(note.content)}
@@ -276,7 +285,8 @@ export default async function SharedNotePage({
 
             <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-base">
               <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
                 components={customMarkdownComponents}
               >
                 {normalizeNoteMarkdown(note.shortNotes)}
