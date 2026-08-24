@@ -11,6 +11,48 @@ import { indexDocument } from "@/lib/rag/vectorSearch";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
+/**
+ * Server-side LaTeX math sanitizer.
+ * Cleans AI-generated content before saving to MongoDB so KaTeX always renders correctly.
+ */
+function sanitizeMathContent(text: string): string {
+  if (!text) return "";
+  let clean = text;
+
+  // 1. Unescape escaped dollar signs (\$) -> ($)
+  clean = clean.replace(/\\\$/g, "$");
+
+  // 2. Normalize LaTeX display math \[ ... \] -> $$ ... $$
+  clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
+
+  // 3. Normalize LaTeX inline math \( ... \) -> $ ... $
+  clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, (_, p1) => `$${p1.trim()}$`);
+
+  // 4. Convert code-backtick wrapped LaTeX formulas on their own line -> display math
+  clean = clean.replace(/(?:^|\n)\s*`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`\s*(?:\n|$)/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
+
+  // 5. Convert inline code-backtick wrapped LaTeX formulas -> inline math
+  clean = clean.replace(/`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`/g, (_, p1) => `$${p1.trim()}$`);
+
+  // 6. Fix unclosed $ followed by LaTeX math commands
+  const lines = clean.split("\n");
+  const processed = lines.map((line) => {
+    if (line.trim().startsWith("$$")) return line;
+    const withoutDisplay = line.replace(/\$\$[^\$]*?\$\$/g, "");
+    const dollarCount = (withoutDisplay.match(/(?<!\$)\$(?!\$)/g) || []).length;
+    if (dollarCount % 2 !== 0) {
+      return line.replace(/(\$(?:[^\$\n]*?\\[a-zA-Z]+[^\$\n]*?))(?=\s+[A-Za-z]{2,}|\s*$|[.,;:!?)\]])/g, (m) => {
+        const cnt = (m.match(/\$/g) || []).length;
+        return cnt % 2 !== 0 ? m + "$" : m;
+      });
+    }
+    return line;
+  });
+  clean = processed.join("\n");
+
+  return clean;
+}
+
 export async function POST(req: Request) {
   try {
     const { userId: clerkId } = await auth();
@@ -158,17 +200,24 @@ Provide at least 6 MCQs and at least 2 mermaid charts. In Mermaid charts, ALWAYS
     user.credits -= 1;
     await user.save();
 
-    // Save note
+    // Save note (sanitize all math/LaTeX fields before storing)
     const newNote = await Note.create({
       userId: user._id,
       topic,
       classLevel,
       title: noteData.title || topic,
       summary: noteData.summary || "",
-      content: noteData.content || "",
-      shortNotes: noteData.shortNotes || "",
-      importantQuestions: normalizedQuestions,
-      mcqs: noteData.mcqs || [],
+      content: sanitizeMathContent(noteData.content || ""),
+      shortNotes: sanitizeMathContent(noteData.shortNotes || ""),
+      importantQuestions: normalizedQuestions.map((q: any) => ({
+        question: sanitizeMathContent(q.question),
+        answer: sanitizeMathContent(q.answer),
+      })),
+      mcqs: (noteData.mcqs || []).map((mcq: any) => ({
+        ...mcq,
+        question: sanitizeMathContent(mcq.question || ""),
+        correctAnswer: sanitizeMathContent(mcq.correctAnswer || ""),
+      })),
       mermaidCharts: noteData.mermaidCharts || [],
     });
 
