@@ -4,8 +4,9 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import { processMathMarkdown } from "@/lib/mathPrerender";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { prepareMarkdown } from "@/lib/prepareMarkdown";
 import MermaidRenderer from "@/components/MermaidRenderer";
 import MCQSection from "@/components/MCQSection";
 import PDFExportButton from "@/components/PDFExportButton";
@@ -251,11 +252,11 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               
               <div className="prose prose-slate dark:prose-invert max-w-none">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeRaw]}
+                  remarkPlugins={[remarkMath, remarkGfm]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
                   components={customMarkdownComponents}
                 >
-                  {processMathMarkdown(note.content)}
+                  {prepareMarkdown(note.content)}
                 </ReactMarkdown>
               </div>
             </section>
@@ -298,11 +299,11 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               </div>
               <div className="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeRaw]}
+                  remarkPlugins={[remarkMath, remarkGfm]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
                   components={customMarkdownComponents}
                 >
-                  {processMathMarkdown(note.shortNotes)}
+                  {prepareMarkdown(note.shortNotes)}
                 </ReactMarkdown>
               </div>
             </section>

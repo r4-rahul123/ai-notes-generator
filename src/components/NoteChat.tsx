@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import { processMathMarkdown } from "@/lib/mathPrerender";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { prepareMarkdown } from "@/lib/prepareMarkdown";
 import {
   Bot,
   GripVertical,
@@ -299,10 +300,10 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
                     ) : (
                       <div className="space-y-2 [&_p]:leading-relaxed [&_ul]:space-y-1 [&_ul]:my-1.5 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:space-y-1 [&_ol]:my-1.5 [&_ol]:pl-4 [&_ol]:list-decimal [&_li]:leading-normal [&_strong]:font-bold [&_strong]:text-slate-950 dark:[&_strong]:text-white [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:bg-slate-100 dark:[&_code]:bg-slate-700 [&_code]:text-indigo-600 dark:[&_code]:text-indigo-300 [&_code]:font-mono [&_code]:text-xs [&_pre]:my-2 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:bg-slate-900 [&_pre]:text-slate-100 [&_pre]:text-xs [&_pre]:overflow-x-auto [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold [&_blockquote]:border-l-2 [&_blockquote]:border-blue-500 [&_blockquote]:pl-2.5 [&_blockquote]:my-1.5 [&_blockquote]:italic [&_table]:w-full [&_table]:text-xs [&_th]:border [&_th]:p-1 [&_td]:border [&_td]:p-1">
                         <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeRaw]}
+                          remarkPlugins={[remarkMath, remarkGfm]}
+                          rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
                         >
-                          {processMathMarkdown(msg.content)}
+                          {prepareMarkdown(msg.content)}
                         </ReactMarkdown>
                       </div>
                     )}

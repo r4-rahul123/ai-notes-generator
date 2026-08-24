@@ -3,8 +3,9 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import { processMathMarkdown } from "@/lib/mathPrerender";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { prepareMarkdown } from "@/lib/prepareMarkdown";
 import CodeBlock from "@/components/CodeBlock";
 import { HelpCircle, ChevronDown, ChevronUp, CheckCircle2, Loader2, RotateCcw } from "lucide-react";
 
@@ -271,11 +272,11 @@ export default function ImportantQuestionsSection({
                     ) : (
                       <div className="prose prose-slate dark:prose-invert max-w-none">
                         <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeRaw]}
+                          remarkPlugins={[remarkMath, remarkGfm]}
+                          rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
                           components={answerMarkdownComponents}
                         >
-                          {processMathMarkdown(
+                          {prepareMarkdown(
                             formatAnswerMarkdown(
                               answerText || "Answer could not be generated. Please click to retry."
                             )

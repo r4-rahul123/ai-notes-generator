@@ -3,8 +3,9 @@ import Note from "@/lib/models/Note";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import { processMathMarkdown } from "@/lib/mathPrerender";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { prepareMarkdown } from "@/lib/prepareMarkdown";
 import MermaidRenderer from "@/components/MermaidRenderer";
 import MCQSection from "@/components/MCQSection";
 import PDFExportButton from "@/components/PDFExportButton";
@@ -236,13 +237,13 @@ export default async function SharedNotePage({
           </div>
 
           <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-base">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
-              components={customMarkdownComponents}
-            >
-              {processMathMarkdown(note.content)}
-            </ReactMarkdown>
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath, remarkGfm]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+                  components={customMarkdownComponents}
+                >
+                  {prepareMarkdown(note.content)}
+                </ReactMarkdown>
           </div>
         </section>
 
@@ -265,11 +266,11 @@ export default async function SharedNotePage({
 
             <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-base">
               <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw]}
+                remarkPlugins={[remarkMath, remarkGfm]}
+                rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
                 components={customMarkdownComponents}
               >
-                {processMathMarkdown(note.shortNotes)}
+                {prepareMarkdown(note.shortNotes)}
               </ReactMarkdown>
             </div>
           </section>
