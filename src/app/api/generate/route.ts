@@ -11,59 +11,6 @@ import { indexDocument } from "@/lib/rag/vectorSearch";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
-/**
- * Server-side LaTeX math sanitizer.
- * Cleans AI-generated content before saving to MongoDB so KaTeX always renders correctly.
- * Strategy: convert everything to $...$ / $$...$$ which remarkMath handles perfectly.
- */
-function sanitizeMathContent(text: string): string {
-  if (!text) return "";
-  let clean = text;
-
-  // 1. Unescape escaped dollar signs (\$) -> ($)
-  clean = clean.replace(/\\\$/g, "$");
-
-  // 2. Handle double-escaped notation from JSON: \\( ... \\) and \\[ ... \\]
-  //    These come through as literal "\\(" in the parsed string
-  clean = clean.replace(/\\\\([[(])([\s\S]*?)\\\\([\])])/g, (_, open, content, close) => {
-    if (open === "[" && close === "]") return `\n\n$$${content.trim()}$$\n\n`;
-    if (open === "(" && close === ")") return `$${content.trim()}$`;
-    return _;
-  });
-
-  // 3. Normalize single-escaped \[ ... \] -> $$ ... $$  (display math)
-  clean = clean.replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
-
-  // 4. Normalize single-escaped \( ... \) -> $ ... $  (inline math)
-  clean = clean.replace(/\\\(([\s\S]*?)\\\)/g, (_, p1) => `$${p1.trim()}$`);
-
-  // 5. Convert code-backtick wrapped LaTeX on its own line -> display math $$...$$
-  clean = clean.replace(/(?:^|\n)\s*`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`\s*(?:\n|$)/g, (_, p1) => `\n\n$$${p1.trim()}$$\n\n`);
-
-  // 6. Convert inline code-backtick wrapped LaTeX -> inline math $...$
-  clean = clean.replace(/`([^`\n]*?\\[a-zA-Z]+[^`\n]*?)`/g, (_, p1) => `$${p1.trim()}$`);
-
-  // 7. Fix unclosed $ signs: for every line, if there's an odd number of $,
-  //    append a closing $ at the end of the line (simplest reliable fix)
-  const lines = clean.split("\n");
-  const fixed = lines.map((line) => {
-    if (line.trim().startsWith("$$")) return line;
-    // Count $ that are not part of $$
-    let count = 0;
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === "$") {
-        if (line[i + 1] === "$") { i++; } // skip $$
-        else { count++; }
-      }
-    }
-    if (count % 2 !== 0) return line + "$";
-    return line;
-  });
-  clean = fixed.join("\n");
-
-  return clean;
-}
-
 export async function POST(req: Request) {
   try {
     const { userId: clerkId } = await auth();
@@ -211,23 +158,23 @@ Provide at least 6 MCQs and at least 2 mermaid charts. In Mermaid charts, ALWAYS
     user.credits -= 1;
     await user.save();
 
-    // Save note (sanitize all math/LaTeX fields before storing)
+    // Save note without destructive backend sanitization (frontend prepareMarkdown handles this safely now)
     const newNote = await Note.create({
       userId: user._id,
       topic,
       classLevel,
       title: noteData.title || topic,
       summary: noteData.summary || "",
-      content: sanitizeMathContent(noteData.content || ""),
-      shortNotes: sanitizeMathContent(noteData.shortNotes || ""),
+      content: noteData.content || "",
+      shortNotes: noteData.shortNotes || "",
       importantQuestions: normalizedQuestions.map((q: any) => ({
-        question: sanitizeMathContent(q.question),
-        answer: sanitizeMathContent(q.answer),
+        question: q.question,
+        answer: q.answer,
       })),
       mcqs: (noteData.mcqs || []).map((mcq: any) => ({
         ...mcq,
-        question: sanitizeMathContent(mcq.question || ""),
-        correctAnswer: sanitizeMathContent(mcq.correctAnswer || ""),
+        question: mcq.question || "",
+        correctAnswer: mcq.correctAnswer || "",
       })),
       mermaidCharts: noteData.mermaidCharts || [],
     });
