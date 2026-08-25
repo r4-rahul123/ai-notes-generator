@@ -534,7 +534,6 @@ export async function GET(
         checkPageBreak(60);
         const cleanQ = cleanForPdfProse(mcq.question).replace(/`/g, "");
         const cleanAns = cleanForPdfProse(mcq.correctAnswer).replace(/`/g, "");
-        const options = Array.isArray(mcq.options) ? mcq.options : [];
 
         // MCQ Question
         doc.setFont("helvetica", "bold");
@@ -544,29 +543,11 @@ export async function GET(
         doc.text(qLines, margin, yPos);
         yPos += qLines.length * 13 + 5;
 
-        // Options List (A, B, C, D)
-        if (options.length > 0) {
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(9);
-          doc.setTextColor(71, 85, 105); // Slate-600
-
-          const optionLabels = ["A", "B", "C", "D", "E", "F"];
-          options.forEach((opt: string, optIdx: number) => {
-            const cleanOpt = cleanForPdfProse(String(opt)).replace(/`/g, "");
-            const label = optionLabels[optIdx] || `${optIdx + 1}`;
-            const optLines = doc.splitTextToSize(`(${label}) ${cleanOpt}`, contentWidth - 20);
-            checkPageBreak(optLines.length * 12 + 3);
-            doc.text(optLines, margin + 12, yPos);
-            yPos += optLines.length * 12 + 3;
-          });
-          yPos += 4;
-        }
-
-        // Correct Answer Box directly underneath
+        // Correct Answer Box
         doc.setFont("helvetica", "bold");
         doc.setFontSize(9);
         doc.setTextColor(22, 101, 52); // Green-800
-        const ansLines = doc.splitTextToSize(`Correct Answer: ${cleanAns}`, contentWidth - 24);
+        const ansLines = doc.splitTextToSize(`Ans: ${cleanAns}`, contentWidth - 24);
         const ansHeight = ansLines.length * 12 + 8;
 
         checkPageBreak(ansHeight + 8);
