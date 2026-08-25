@@ -270,11 +270,18 @@ export default function GeneratePage() {
           const jobData = await jobRes.json();
           
           if (jobRes.ok) {
-            setProgress(Math.max(10, jobData.progress || 10));
+            setProgress(Math.max(5, jobData.progress || 5));
             
             // Map progress to text
-            const stepText = loadingSteps.find((s) => jobData.progress <= s.threshold)?.label || "Processing...";
+            const stepText = loadingSteps.find((s) => (jobData.progress || 5) <= s.threshold)?.label || "Processing...";
             setCurrentStepText(stepText);
+            
+            if (jobData.state === "failed") {
+              clearInterval(pollInterval);
+              setLoading(false);
+              toast.error(`Generation failed: ${jobData.failedReason || "Unknown error"}`);
+              return;
+            }
 
             if (jobData.state === "completed" && jobData.result?.noteId) {
               clearInterval(pollInterval);
@@ -284,10 +291,6 @@ export default function GeneratePage() {
               setTimeout(() => {
                 router.push(`/notes/${jobData.result.noteId}`);
               }, 600);
-            } else if (jobData.state === "failed") {
-              clearInterval(pollInterval);
-              toast.error(jobData.failedReason || "Background job failed.");
-              setLoading(false);
             }
           }
         } catch (pollErr) {
