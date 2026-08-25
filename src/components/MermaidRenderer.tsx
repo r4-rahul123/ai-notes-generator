@@ -62,8 +62,9 @@ export function sanitizeMermaid(code: string): string {
     // 1. Clean and wrap Square Bracket Nodes: Node[ ... ]
     // IMPORTANT: The regex avoids matching $$ math blocks by only acting when
     // the bracket content does NOT start with $$, so KaTeX formulas are preserved.
+    // Also consumes optional errant trailing quote `"?` sometimes outputted by AI.
     l = l.replace(
-      /(\b[A-Za-z0-9_]+)\s*\[([^\]]*?)\](?=\s*(?:-->|---|==>|-\.->|\||$))/g,
+      /(\b[A-Za-z0-9_]+)\s*\[([^\]]*?)\]"?(?=\s*(?:-->|---|==>|-\.->|\||$))/g,
       (match, id, content) => {
         let inner = content.trim();
         if (inner.startsWith('"') && inner.endsWith('"') && inner.length >= 2) {
@@ -80,15 +81,16 @@ export function sanitizeMermaid(code: string): string {
           safeMath = safeMath.replace(/\\\\([a-zA-Z]+)/g, "\\$1");
           return "$$" + safeMath + "$$";
         });
-        // Outside KaTeX, ensure < doesn't look like an HTML tag by adding a space
-        inner = inner.replace(/<([a-zA-Z])/g, "< $1");
+        // Outside KaTeX, ensure < doesn't look like an HTML tag by adding a space (except for <br>)
+        inner = inner.replace(/<(?!\/?br\b)([a-zA-Z])/gi, "< $1");
         return `${id}["${inner}"]`;
       }
     );
 
     // 2. Clean and wrap Round Bracket Nodes: Node( ... )
+    // Consumes optional errant trailing quote `"?` sometimes outputted by AI.
     l = l.replace(
-      /(\b[A-Za-z0-9_]+)\s*\(([^)]*?)\)(?=\s*(?:-->|---|==>|-\.->|\||$))/g,
+      /(\b[A-Za-z0-9_]+)\s*\(([^)]*?)\)"?(?=\s*(?:-->|---|==>|-\.->|\||$))/g,
       (match, id, content) => {
         let inner = content.trim();
         if (inner.startsWith('"') && inner.endsWith('"') && inner.length >= 2) {
@@ -101,7 +103,7 @@ export function sanitizeMermaid(code: string): string {
           safeMath = safeMath.replace(/\\\\([a-zA-Z]+)/g, "\\$1");
           return "$$" + safeMath + "$$";
         });
-        inner = inner.replace(/<([a-zA-Z])/g, "< $1");
+        inner = inner.replace(/<(?!\/?br\b)([a-zA-Z])/gi, "< $1");
         return `${id}("${inner}")`;
       }
     );
