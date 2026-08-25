@@ -23,6 +23,15 @@ export function sanitizeMermaid(code: string): string {
   // is followed by whitespace, so LaTeX commands such as `\nabla` stay intact.
   clean = clean.replace(/\r\n/g, "\n").replace(/\\n(?=\s)/g, "\n");
 
+  // Decode HTML entities that can appear when AI-generated text is stored/retrieved
+  // via HTML context. KaTeX cannot parse &lt; &gt; &amp; - they must be raw chars.
+  clean = clean
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+
   // Mermaid uses $$...$$ for KaTeX. Normalize Markdown-style math emitted by
   // older prompts so formulas in already-saved charts are typeset as well.
   clean = clean
@@ -55,27 +64,30 @@ export function sanitizeMermaid(code: string): string {
     }
 
     // 1. Clean and wrap Square Bracket Nodes: Node[ ... ]
+    // IMPORTANT: The regex avoids matching $$ math blocks by only acting when
+    // the bracket content does NOT start with $$, so KaTeX formulas are preserved.
     l = l.replace(
-      /(\b[A-Za-z0-9_]+)\s*\[([\s\S]*?)\](?=\s*(?:-->|---|==>|-.->|\||$))/g,
+      /(\b[A-Za-z0-9_]+)\s*\[([^\]]*?)\](?=\s*(?:-->|---|==>|-\.->|\||$))/g,
       (match, id, content) => {
         let inner = content.trim();
         if (inner.startsWith('"') && inner.endsWith('"') && inner.length >= 2) {
           inner = inner.slice(1, -1);
         }
-        inner = inner.replace(/"/g, "'").trim();
+        // Replace only unquoted double-quotes to avoid breaking $$ math
+        inner = inner.replace(/(?<!\\)"/g, "'").trim();
         return `${id}["${inner}"]`;
       }
     );
 
     // 2. Clean and wrap Round Bracket Nodes: Node( ... )
     l = l.replace(
-      /(\b[A-Za-z0-9_]+)\s*\(([\s\S]*?)\)(?=\s*(?:-->|---|==>|-.->|\||$))/g,
+      /(\b[A-Za-z0-9_]+)\s*\(([^)]*?)\)(?=\s*(?:-->|---|==>|-\.->|\||$))/g,
       (match, id, content) => {
         let inner = content.trim();
         if (inner.startsWith('"') && inner.endsWith('"') && inner.length >= 2) {
           inner = inner.slice(1, -1);
         }
-        inner = inner.replace(/"/g, "'").trim();
+        inner = inner.replace(/(?<!\\)"/g, "'").trim();
         return `${id}("${inner}")`;
       }
     );

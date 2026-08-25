@@ -10,7 +10,10 @@ export function prepareMarkdown(text: string): string {
   // Also fixes KaTeX parse errors for unbraced macro superscripts (e.g. ^\dagger -> ^{\dagger})
   const safeMath = (math: string) => {
     let m = math.replace(/\|/g, "\\vert ");
-    m = m.replace(/(\^|_)\\([a-zA-Z]+)/g, "$1{\\$2}");
+    // Only auto-brace UNBRACED macro superscripts/subscripts.
+    // e.g.  ^\dagger -> ^{\dagger}   but  ^{\dagger} stays unchanged.
+    // The negative lookahead (?!\{) prevents double-wrapping already-braced macros.
+    m = m.replace(/(\^|_)\\([a-zA-Z]+)(?!\{)/g, "$1{\\$2}");
     return m;
   };
 
