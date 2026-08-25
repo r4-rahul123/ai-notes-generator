@@ -95,7 +95,7 @@ const customMarkdownComponents = {
     }
     return (
       <code
-        className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-blue-700 dark:text-blue-300 font-mono text-xs sm:text-sm border border-slate-200 dark:border-slate-600"
+        className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-blue-700 dark:text-blue-300 font-mono text-xs sm:text-sm border border-slate-200 dark:border-slate-600 box-decoration-clone"
         {...props}
       >
         {children}

@@ -59,6 +59,11 @@ export function sanitizeMermaid(code: string): string {
       return l;
     }
 
+    // Protect intended <br> line-break tags BEFORE the generic "<" escaping
+    // below, otherwise "<br>" becomes "< br>" and renders as literal text
+    // inside the node instead of a line break.
+    l = l.replace(/<br\s*\/?>/gi, "\u0001BR\u0001");
+
     // 1. Clean and wrap Square Bracket Nodes: Node[ ... ]
     // IMPORTANT: The regex avoids matching $$ math blocks by only acting when
     // the bracket content does NOT start with $$, so KaTeX formulas are preserved.
@@ -108,6 +113,8 @@ export function sanitizeMermaid(code: string): string {
       }
     );
 
+    // Restore the protected line-break tags as canonical <br/>
+    l = l.replace(/\u0001BR\u0001/g, "<br/>");
     return l;
   });
 
