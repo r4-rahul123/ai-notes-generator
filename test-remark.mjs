@@ -1,0 +1,1 @@
+import { remark } from 'remark'; import remarkMath from 'remark-math'; const doc = '\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} using the collapse'; const tree = remark().use(remarkMath).parse(doc); console.log(JSON.stringify(tree, null, 2));

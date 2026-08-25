@@ -87,6 +87,8 @@ export function prepareMarkdown(text: string): string {
 function looksLikeMath(s: string): boolean {
   const t = s.trim();
   if (!t) return false;
+  // If it contains markdown headers or horizontal rules, it's hallucinated prose, not a single math formula
+  if (/\n#{1,6}\s/.test(t) || /\n\s*---\s*\n/.test(t) || /\n\s*\*\*\*\s*\n/.test(t)) return false;
   if (/\\[a-zA-Z]+/.test(t)) return true; // LaTeX command e.g. \lambda, \frac
   if (/[\^_{}=<>|≤≥≠≈±∑∏∫√⟨⟩]/.test(t)) return true; // math punctuation / operators
   if (!/\s/.test(t)) return true; // compact token e.g. f(x), n+1, mc^2
@@ -162,8 +164,14 @@ function repairMathDelimiters(text: string, safeMath: (m: string) => string): st
   }
 
   if (stack.length > 0) {
-    // Unclosed opener: keep everything from that opener onward as plain text.
-    return out + text.slice(stack[0].openerStart);
+    // Unclosed opener: it's a false alarm. Escape it so remark-math doesn't swallow
+    // the rest of the document looking for a closer.
+    let remainder = text.slice(stack[0].openerStart);
+    const op = stack[0].op;
+    if (op === '$$' || op === '$') {
+       remainder = "\\" + remainder;
+    }
+    return out + remainder;
   }
   return out + text.slice(pos);
 }
