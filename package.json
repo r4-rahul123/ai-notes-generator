@@ -6,17 +6,21 @@
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "worker": "tsx --env-file=.env.local src/worker.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@clerk/nextjs": "^7.7.9",
     "@google/genai": "^2.18.0",
     "@types/pdf-parse": "^1.1.5",
+    "bullmq": "^6.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.14.0",
+    "ioredis": "^6.0.0",
     "json5": "^2.2.3",
     "jsonrepair": "^3.15.0",
     "jspdf": "^4.2.1",
@@ -47,6 +51,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }

@@ -192,15 +192,25 @@
     margin: 15mm 15mm;
   }
   
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
   .no-print, nav, header, footer, button, .chat-section {
     display: none !important;
   }
   
   body, main, .min-h-screen {
     background: white !important;
-    color: black !important;
+    color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
+  }
+
+  /* Force high contrast black text for readability in PDF, excluding arbitrary divs/spans that might have custom backgrounds */
+  p, li, td, th, h1, h2, h3, h4, h5, h6, strong, b, em, i, .prose * {
+    color: #000000 !important;
   }
   
   /* Remove shadows, borders, and backgrounds from the main cards to make it look like a pure document */

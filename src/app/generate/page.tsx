@@ -65,38 +65,13 @@ export default function GeneratePage() {
     "Machine Learning Basics",
   ];
 
-  // Animated progress timer during generation
   useEffect(() => {
-    if (loading) {
-      setProgress(5);
-      setCurrentStepText("Analyzing topic & semantic structure...");
-
-      progressIntervalRef.current = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 92) {
-            return 92; // hold at 92% until response resolves
-          }
-          const step = Math.min(prev + (prev < 40 ? 4 : prev < 75 ? 3 : 1), 92);
-
-          // Update step label based on current progress
-          const currentStep = loadingSteps.find((s) => step <= s.threshold) || loadingSteps[0];
-          setCurrentStepText(currentStep.label);
-
-          return step;
-        });
-      }, 450);
-    } else {
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-    }
-
     return () => {
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
       }
     };
-  }, [loading]);
+  }, []);
 
   // Fast Client-Side PDF Text Extractor (Runs directly in the browser with 0ms network latency)
   const extractPdfTextInBrowser = async (file: File): Promise<{ text: string; pages: number }> => {
@@ -250,12 +225,15 @@ export default function GeneratePage() {
       toast.error("Please provide a topic or focus area.");
       return;
     }
-    if (mode === "pdf" && !pdfText) {
-      toast.error("Please upload and wait for PDF to finish reading.");
+    if (mode === "pdf" && !pdfFile) {
+      toast.error("Please upload a PDF file.");
       return;
     }
 
     setLoading(true);
+    setProgress(5);
+    setCurrentStepText("Queuing generation task...");
+    
     try {
       const body: any = {
         topic: finalTopic,
@@ -277,23 +255,49 @@ export default function GeneratePage() {
       try {
         data = await res.json();
       } catch {
-        throw new Error(
-          res.status === 504
-            ? "Server timed out while processing large PDF. Please try focusing on a specific topic or shorter document."
-            : "Server returned an unexpected format. Please try again."
-        );
+        throw new Error("Server returned an unexpected format. Please try again.");
       }
 
-      if (!res.ok) throw new Error(data?.error || "Failed to generate notes");
+      if (!res.ok) throw new Error(data?.error || "Failed to enqueue note generation");
 
-      // Smoothly advance to 100%
-      setProgress(100);
-      setCurrentStepText("Notes generated successfully! Loading notes (100%)...");
-      toast.success("Notes generated successfully!");
+      const jobId = data.jobId;
+      toast.success("Job added to queue! Processing in background...");
 
-      setTimeout(() => {
-        router.push(`/notes/${data.noteId}`);
-      }, 600);
+      // Poll job status
+      const pollInterval = setInterval(async () => {
+        try {
+          const jobRes = await fetch(`/api/jobs/${jobId}`);
+          const jobData = await jobRes.json();
+          
+          if (jobRes.ok) {
+            setProgress(Math.max(10, jobData.progress || 10));
+            
+            // Map progress to text
+            const stepText = loadingSteps.find((s) => jobData.progress <= s.threshold)?.label || "Processing...";
+            setCurrentStepText(stepText);
+
+            if (jobData.state === "completed" && jobData.result?.noteId) {
+              clearInterval(pollInterval);
+              setProgress(100);
+              setCurrentStepText("Notes generated successfully! Loading notes (100%)...");
+              
+              setTimeout(() => {
+                router.push(`/notes/${jobData.result.noteId}`);
+              }, 600);
+            } else if (jobData.state === "failed") {
+              clearInterval(pollInterval);
+              toast.error(jobData.failedReason || "Background job failed.");
+              setLoading(false);
+            }
+          }
+        } catch (pollErr) {
+          console.error("Polling error:", pollErr);
+        }
+      }, 2000);
+      
+      // Clear interval on unmount
+      progressIntervalRef.current = pollInterval;
+      
     } catch (error: any) {
       toast.error(error.message || "Failed to generate notes");
       setLoading(false);

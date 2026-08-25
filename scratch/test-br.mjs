@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 const dom = new JSDOM(`<!DOCTYPE html><html><body><div id="c"></div></body></html>`, { pretendToBeVisual: true });
 global.window = dom.window;
 global.document = dom.window.document;
-global.navigator = dom.window.navigator;
+Object.defineProperty(global, "navigator", { value: dom.window.navigator, configurable: true });
 
 const mermaid = (await import("mermaid")).default;
 
