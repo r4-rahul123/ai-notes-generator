@@ -6,7 +6,8 @@ import { notesQueueName, GenerateNoteJobData } from './lib/queue';
 import connectToDatabase from './lib/mongoose';
 import Note from './lib/models/Note';
 import User from './lib/models/User';
-import { generateWithFallback, parseAiJson } from './lib/gemini';
+import { generateWithFallback } from './lib/gemini';
+import { parseAiJson } from './lib/parseAiJson';
 import { indexDocument } from './lib/rag/vectorSearch';
 
 console.log('Starting Notes Generation Worker...');
