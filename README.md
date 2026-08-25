@@ -1,103 +1,102 @@
-# 🎓 AI Notes Generator - Next.js 16 SaaS Application
+# 🚀 AI Notes & Quiz Generator (Premium SaaS Architecture)
 
-AI-powered comprehensive study companion that turns topics, complex concepts, and PDF textbooks into structured notes, executive summaries, revision flashcards, visual Mermaid flowcharts, and interactive practice MCQ tests with PDF downloads and public sharing.
+An advanced, full-stack Next.js application that leverages AI to generate comprehensive study notes, flashcards, interactive MCQs, and vector-embedded RAG chats from simple topics or complex PDF uploads. 
+
+Built with enterprise-grade architecture featuring BullMQ + Redis background processing, MongoDB vector search, and a stunning Glassmorphism UI.
 
 ---
 
-## 🌟 Key Features
+## ✨ Features
 
-1. **🤖 Dual AI Engine with Auto-Fallback (Gemini 3.5)**:
-   - Primary: `gemini-3.5-flash` for lightning-fast rich note generation.
-   - Secondary Fallback: `gemini-3.5-flash-lite` auto-activated on 429 quota exhaustion.
+1. **🧠 Multi-Model AI Engine (Gemini 1.5 Flash & Pro)**:
+   - Dynamic prompt generation for structured study materials.
+   - Intelligent PDF extraction (Fast client-side parsing + server fallback).
    - Robust 5-tier fail-safe JSON parser (`jsonrepair` + regex recovery).
 
-2. **📊 Interactive Dashboard & Student Study Analytics**:
+2. **⚙️ Enterprise Background Processing (BullMQ + Redis)**:
+   - Asynchronous queue processing via a dedicated background worker (\`npm run worker\`).
+   - Bypasses strict Vercel 60s timeout limits on heavy AI PDF parsing tasks.
+   - Built-in Redis Rate-Limiting (Max 3 notes/minute) to prevent API abuse.
+   - Real-time client polling for interactive generation progress bars.
+
+3. **✨ Premium Glassmorphism UI (Tailwind v4)**:
+   - High-end Midnight Black & Indigo Aurora glowing background in Dark Mode.
+   - Translucent frosted-glass (backdrop-blur) UI cards with hover-bounce physics and glowing borders.
+   - Custom sleek scrollbars and refined typography gradients.
+
+4. **📊 Interactive Dashboard & Student Study Analytics**:
    - Real-time statistics: Total Notes Created, Quiz Average Accuracy %, Tests Taken, and Visual Flowcharts Mastered.
    - Live search by title, topic, or keyword.
    - Category / Class level filter chips (`All`, `School`, `College`, `Competitive Exams`).
    - Dynamic sorting: *Newest First*, *Oldest First*, *Highest Quiz Score*, and *Title (A-Z)*.
 
-3. **🔗 1-Click Shareable Public Study Links & WhatsApp**:
+5. **🔗 1-Click Shareable Public Study Links & WhatsApp**:
    - Public view route (`/share/[id]`) allows anyone to study, practice MCQs, and download PDFs without logging in.
    - Compact share modal with 1-click URL copy and pre-formatted WhatsApp chat message.
 
-4. **❓ Important Exam Questions & Live AI Answers**:
+6. **❓ Important Exam Questions & Live AI Answers**:
    - Generates high-yield exam questions with model answers.
    - On-demand AI answer generator for custom questions.
 
-5. **🏆 Interactive MCQ Practice & Quiz History**:
+7. **✅ Interactive MCQ Practice & Quiz History**:
    - 5-6 questions per test with instant feedback and score cards.
    - Quiz history tracking with score progression.
    - AI dynamic test regenerator for fresh questions.
 
-6. **🧠 Grounded RAG Vector Note Chat**:
-   - Chat with your study notes using cosine similarity search on stored embeddings.
+8. **💬 Grounded RAG Vector Note Chat**:
+   - Chat directly with your study notes using cosine similarity search on stored Pinecone/MongoDB embeddings.
 
-7. **📄 Premium Server-Side PDF Exporter**:
-   - Clean slate-themed design with auto-wrapping grid tables.
-   - Dark IDE code containers with Courier font and window dots.
-   - Multi-page auto-repeating table headers.
+9. **📄 Premium Server-Side PDF Exporter**:
+   - Clean high-contrast #000 text design tailored specifically for PDF exporting.
+   - Wraps code blocks, grids, and Mermaid diagrams perfectly over page breaks.
 
 ---
 
-## 📁 File Structure & System Architecture
+## 📂 File Structure & System Architecture
 
 ```text
 ai_notes_generator/
 ├── src/
 │   ├── app/                               # Next.js App Router
 │   │   ├── api/                           # Backend API Endpoints
+│   │   │   ├── generate/                  # Push jobs to BullMQ & Rate Limiting
+│   │   │   ├── jobs/[id]/                 # Job status polling endpoint
 │   │   │   ├── answer-question/           # On-demand AI question answers
 │   │   │   ├── chat/                      # Grounded RAG vector note chat
-│   │   │   ├── generate/                  # Full study note generation engine
-│   │   │   ├── mock-payment/              # Credit purchase mock checkout
 │   │   │   ├── notes/[id]/mcq/new/        # Fresh MCQ test regenerator
-│   │   │   ├── notes/[id]/mcq/submit/     # MCQ test score tracker
 │   │   │   ├── notes/[id]/pdf/            # Server-side PDF export engine
-│   │   │   ├── parse-pdf/                 # PDF document parser
-│   │   │   └── razorpay/                  # Payment gateway integration
+│   │   │   ├── razorpay/                  # Payment gateway integration
 │   │   ├── dashboard/                     # Authenticated student dashboard
-│   │   ├── generate/                      # Note generation studio with progress bar
+│   │   ├── generate/                      # Note generation studio with queue polling
 │   │   ├── notes/[id]/                    # Full study note view & workspace
 │   │   ├── pricing/                       # Credit store & plans
 │   │   ├── share/[id]/                    # Public shared study page (No login needed)
 │   │   ├── sign-in/                       # Clerk Authentication sign-in
 │   │   ├── sign-up/                       # Clerk Authentication sign-up
-│   │   ├── globals.css                    # Tailwind CSS & stable layout rules
-│   │   ├── layout.tsx                     # Root layout with Clerk & Theme Provider
-│   │   └── page.tsx                       # Redesigned interactive landing page
+│   │   ├── globals.css                    # Tailwind CSS & Premium Print/Scrollbar rules
+│   │   ├── layout.tsx                     # Root layout with Aurora Glowing Background
+│   │   ├── page.tsx                       # Redesigned interactive landing page
 │   │
 │   ├── components/                        # Modular React Components
 │   │   ├── ui/                            # Base UI / Tailwind primitives
-│   │   │   ├── button.tsx                 # Base Button with hydration suppression
-│   │   │   ├── card.tsx                   # Card containers
-│   │   │   ├── input.tsx                  # Base Input with hydration suppression
-│   │   │   ├── separator.tsx              # Divider component
-│   │   │   ├── sonner.tsx                 # Toast notification wrapper
-│   │   │   └── textarea.tsx               # Base Textarea with hydration suppression
 │   │   ├── CodeBlock.tsx                  # Syntax highlighted code box with copy button
-│   │   ├── DashboardClient.tsx            # Interactive dashboard, analytics & filters
+│   │   ├── DashboardClient.tsx            # Glassmorphism dashboard, analytics & filters
 │   │   ├── ImportantQuestionsSection.tsx  # Exam questions with expandable answers
 │   │   ├── MCQSection.tsx                 # Practice MCQ quiz with score tracking
 │   │   ├── MermaidRenderer.tsx            # SVG flowchart & concept map renderer
-│   │   ├── Navbar.tsx                     # Top navigation with credits & theme toggle
+│   │   ├── Navbar.tsx                     # Top navigation with frosted-glass effect
 │   │   ├── NoteChat.tsx                   # Grounded RAG chat sidebar
-│   │   ├── PDFExportButton.tsx            # 1-Click PDF download button
-│   │   ├── ShareNoteButton.tsx            # Compact share modal & WhatsApp button
-│   │   ├── ThemeProvider.tsx              # next-themes wrapper
-│   │   └── ThemeToggle.tsx                # Light/Dark mode toggle button
 │   │
 │   ├── lib/                               # Core Libraries & Utilities
 │   │   ├── models/                        # MongoDB Mongoose Schemas
-│   │   │   ├── Note.ts                    # Note schema with Mixed questions & attempts
-│   │   │   └── User.ts                    # User schema with credit balance
-│   │   ├── gemini.ts                      # Gemini 3.5 multi-model fallback client
+│   │   ├── gemini.ts                      # Gemini 1.5 API fallback client
 │   │   ├── mongoose.ts                    # MongoDB connection caching
-│   │   ├── parseAiJson.ts                 # 5-tier fail-safe AI JSON recovery engine
-│   │   ├── utils.ts                       # Tailwind merge utility
-│   │   └── vectorSearch.ts                # Cosine similarity vector search for RAG
+│   │   ├── queue.ts                       # BullMQ queue configuration
+│   │   ├── redis.ts                       # ioredis connection pool
+│   │   ├── rag/                           # Document chunking & vector search algorithms
 │   │
-│   └── middleware.ts                      # Clerk authentication route matcher
+│   ├── worker.ts                          # Standalone background queue processor (BullMQ)
+│   ├── middleware.ts                      # Clerk authentication route matcher
 │
 ├── .env.local                             # Environment variables configuration
 ├── package.json                           # Project dependencies & scripts
@@ -107,7 +106,7 @@ ai_notes_generator/
 
 ---
 
-## ⚙️ Environment Variables (`.env.local`)
+## 🔑 Environment Variables (`.env.local`)
 
 ```env
 # MongoDB Connection
@@ -124,33 +123,36 @@ NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 
-# Optional: Public Domain (for live WhatsApp sharing)
-# NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+# Redis (For Background Jobs & Rate Limiting)
+REDIS_URL=redis://127.0.0.1:6380
 ```
 
 ---
 
-## 🚀 Running Locally
+## 💻 Running Locally
+
+This project uses an asynchronous background worker for heavy AI generation.
 
 ```bash
-# Install dependencies
+# 1. Install dependencies
 npm install
 
-# Start development server
+# 2. Start your Redis server (via Docker)
+# Note: Using port 6380 to avoid conflicts with native Windows Redis services
+docker run -d --name redis-stack -p 6380:6379 -p 8001:8001 redis/redis-stack:latest
+
+# 3. Start the Next.js development server
 npm run dev
 
-# Build for production
-npm run build
-
-# Start production server
-npm run start
+# 4. Open a SECOND terminal and start the background worker!
+npm run worker
 ```
 
 ---
 
-## 🌐 Deploy to Vercel
+## 🚀 Deploy to Vercel
 
 1. Push your repository to GitHub.
 2. Go to [Vercel](https://vercel.com) and click **"Add New Project"** -> **"Import"**.
-3. Add your Environment Variables in Vercel settings.
+3. Add your Environment Variables in Vercel settings (You will need a hosted Redis service like Upstash for production).
 4. Click **Deploy**. Your app will be live with full global WhatsApp sharing!
