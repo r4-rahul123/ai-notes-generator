@@ -1,5 +1,4 @@
 import { GoogleGenAI } from "@google/genai";
-import { Mistral } from "@mistralai/mistralai";
 
 const FALLBACK_MODELS = [
   "gemini-3.5-flash",
@@ -11,64 +10,19 @@ export async function generateWithFallback(options: {
   config?: any;
   preferredModel?: string;
 }) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not set in environment");
+
+  const ai = new GoogleGenAI({ apiKey });
+  const models = options.preferredModel
+    ? [options.preferredModel, ...FALLBACK_MODELS.filter((m) => m !== options.preferredModel)]
+    : FALLBACK_MODELS;
+
   // Normalize contents to structured format
   const normalizedContents =
     typeof options.contents === "string"
       ? [{ role: "user", parts: [{ text: options.contents }] }]
       : options.contents;
-
-  // 1. Try Mistral if API key is provided
-  const mistralKey = process.env.MISTRAL_API_KEY;
-  if (mistralKey) {
-    try {
-      const client = new Mistral({ apiKey: mistralKey });
-      const messages = [];
-      
-      // Handle system instruction if present
-      if (options.config?.systemInstruction?.parts?.[0]?.text) {
-        messages.push({ role: "system", content: options.config.systemInstruction.parts[0].text });
-      }
-
-      // Convert Gemini conversation format to Mistral format
-      for (const msg of normalizedContents) {
-        const role = (msg.role === 'model' ? 'assistant' : 'user') as "assistant" | "user";
-        const text = msg.parts.map((p: any) => p.text).join('\n');
-        messages.push({ role, content: text });
-      }
-
-      const response = await client.chat.complete({
-        model: "mistral-large-latest", // Force Mistral Large
-        messages: messages as any,
-        temperature: options.config?.temperature || 0.7,
-        responseFormat: options.config?.responseMimeType === "application/json" ? { type: "json_object" } : { type: "text" },
-      });
-
-      const responseText = response.choices?.[0]?.message?.content || "";
-      if (responseText) {
-        return {
-          text: responseText as string,
-          candidates: [
-            {
-              content: {
-                parts: [{ text: responseText as string }]
-              }
-            }
-          ]
-        } as any;
-      }
-    } catch (err: any) {
-      console.warn(`Mistral failed, falling back to Gemini:`, err?.message || err);
-    }
-  }
-
-  // 2. Fallback to Gemini
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Neither MISTRAL_API_KEY nor GEMINI_API_KEY is set in environment");
-
-  const ai = new GoogleGenAI({ apiKey });
-  const models = options.preferredModel && !mistralKey
-    ? [options.preferredModel, ...FALLBACK_MODELS.filter((m) => m !== options.preferredModel)]
-    : FALLBACK_MODELS;
 
   let lastError: any = null;
 
@@ -90,5 +44,5 @@ export async function generateWithFallback(options: {
     }
   }
 
-  throw lastError || new Error("All LLM models failed to respond");
+  throw lastError || new Error("All Gemini models failed to respond");
 }

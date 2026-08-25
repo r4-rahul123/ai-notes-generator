@@ -232,9 +232,14 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                 </div>
                 Executive Summary
               </h2>
-              <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base sm:text-lg">
-                {note.summary}
-              </p>
+              <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-base sm:text-lg space-y-3">
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath, remarkGfm]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]}
+                >
+                  {prepareMarkdown(note.summary)}
+                </ReactMarkdown>
+              </div>
             </section>
 
             <Separator className="dark:bg-slate-700" />
@@ -253,7 +258,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               <div className="prose prose-slate dark:prose-invert max-w-none">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath, remarkGfm]}
-                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]}
                   components={customMarkdownComponents}
                 >
                   {prepareMarkdown(note.content)}
@@ -300,7 +305,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               <div className="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath, remarkGfm]}
-                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]}
                   components={customMarkdownComponents}
                 >
                   {prepareMarkdown(note.shortNotes)}

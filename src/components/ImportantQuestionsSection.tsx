@@ -8,6 +8,7 @@ import rehypeKatex from "rehype-katex";
 import { prepareMarkdown } from "@/lib/prepareMarkdown";
 import CodeBlock from "@/components/CodeBlock";
 import { HelpCircle, ChevronDown, ChevronUp, CheckCircle2, Loader2, RotateCcw } from "lucide-react";
+import MathText from "@/components/MathText";
 
 export interface QuestionItem {
   question: string;
@@ -229,7 +230,7 @@ export default function ImportantQuestionsSection({
                     Q{idx + 1}
                   </span>
                   <p className="text-slate-800 dark:text-slate-200 text-base font-semibold leading-relaxed">
-                    {questionText}
+                    <MathText>{questionText}</MathText>
                   </p>
                 </div>
 
@@ -273,7 +274,7 @@ export default function ImportantQuestionsSection({
                       <div className="prose prose-slate dark:prose-invert max-w-none">
                         <ReactMarkdown
                           remarkPlugins={[remarkMath, remarkGfm]}
-                          rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+                          rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]}
                           components={answerMarkdownComponents}
                         >
                           {prepareMarkdown(

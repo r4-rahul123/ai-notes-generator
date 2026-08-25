@@ -15,12 +15,19 @@ interface MermaidRendererProps {
  * - Correctly wraps all node label text in quotes without creating illegal nested quotes
  * - Handles links, arrow labels (|...|), and shape definitions
  */
-function sanitizeMermaid(code: string): string {
+export function sanitizeMermaid(code: string): string {
   if (!code) return "";
   let clean = code.trim();
 
-  // Normalize newlines (handle literal \n from JSON strings)
-  clean = clean.replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
+  // Normalize real newlines. Only treat a literal `\n` as a line break when it
+  // is followed by whitespace, so LaTeX commands such as `\nabla` stay intact.
+  clean = clean.replace(/\r\n/g, "\n").replace(/\\n(?=\s)/g, "\n");
+
+  // Mermaid uses $$...$$ for KaTeX. Normalize Markdown-style math emitted by
+  // older prompts so formulas in already-saved charts are typeset as well.
+  clean = clean
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_match, formula: string) => `$$${formula.trim()}$$`)
+    .replace(/\\\(([\s\S]*?)\\\)/g, (_match, formula: string) => `$$${formula.trim()}$$`);
 
   // Strip markdown code fences
   clean = clean.replace(/^```(?:mermaid)?\s*/i, "").replace(/\s*```$/i, "").trim();
@@ -134,6 +141,7 @@ export default function MermaidRenderer({ chart }: MermaidRendererProps) {
                 nodeBorder: "#3b82f6",
               },
           securityLevel: "loose",
+          forceLegacyMathML: true,
           suppressErrorRendering: true,
         });
 

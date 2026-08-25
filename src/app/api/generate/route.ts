@@ -63,6 +63,11 @@ Topic filter: "${topic}" (focus on this aspect if mentioned in the PDF, otherwis
 Target student level: "${classLevel}"
 ${additionalInstructions ? `Special instructions: ${additionalInstructions}` : ""}
 
+IMPORTANT MATHEMATICAL FORMATTING RULES for EVERY user-visible text field (summary, content, shortNotes, questions, answers, MCQs, and options):
+- Use \\\\( ... \\\\) for INLINE math and \\\\[ ... \\\\] for DISPLAY/BLOCK math. NEVER use dollar signs for text-field math and NEVER wrap formulas in code backticks.
+- The response is raw JSON, so EVERY LaTeX backslash must be escaped as a double backslash. Example raw JSON string: "\\\\(E = \\\\frac{1}{2}mc^2\\\\)".
+- Do not emit bare LaTeX commands outside math delimiters.
+
 IMPORTANT FORMATTING RULES for the "content" field:
 - Use rich markdown formatting to make notes visually attractive
 - Start with a brief intro paragraph
@@ -74,7 +79,6 @@ IMPORTANT FORMATTING RULES for the "content" field:
 - Include a "⚡ Quick Facts" section with interesting facts
 - Include a "🧠 Memory Tips" section with mnemonics or tricks
 - Use tables (markdown table format) where data comparison is useful
-- For ALL mathematical formulas and equations: use \\( ... \\) for INLINE math and \\[ ... \\] on its own line for DISPLAY/BLOCK equations. Examples: inline: \\(E = mc^2\\), \\(\\hat{A}\\), \\(\\rho = |\\psi\\rangle\\langle\\psi|\\). Display: \\[\\frac{d}{dt}|\\psi\\rangle = -\\frac{i}{\\hbar}\\hat{H}|\\psi\\rangle\\]. NEVER use dollar signs $ for math. NEVER wrap formulas in code backticks.
 - Use \`code blocks\` ONLY for real programming code (e.g. Python, JavaScript, C++, SQL).
 - Make it engaging, clear, and easy to read
 
@@ -114,11 +118,16 @@ You MUST respond with a RAW JSON object (no markdown code blocks around it). Fol
     }
   ],
   "mermaidCharts": [
-    "graph TD\\n  A[\\\"Start Process\\\"] --> B[\\\"Step 1\\\"]\\n  B --> C[\\\"Step 2\\\"]"
+    "graph TD\\n  A[\\\"State evolves: $$|\\\\psi(t)\\\\rangle = e^{-i\\\\hat{H}t/\\\\hbar}|\\\\psi(0)\\\\rangle$$\\\"] --> B[\\\"Next concept\\\"]"
   ]
 }
 
-Provide at least 6 MCQs and at least 2 mermaid charts. In Mermaid charts, ALWAYS wrap all node label texts in double quotes like A[\"Label (with details)\"] to prevent syntax errors. Make sure correctAnswer EXACTLY matches one of the options strings.`;
+Provide at least 6 MCQs and at least 2 mermaid charts. In Mermaid charts:
+- ALWAYS wrap every node label in double quotes, like A[\"Label (with details)\"].
+- Mermaid math is different from content-field math: wrap every formula in $$...$$ inside the quoted label. NEVER use \\(...\\) or \\[...\\] in Mermaid charts.
+- Because the chart is inside JSON, escape every LaTeX backslash as a double backslash. For example, output \\\\psi rather than \\psi in the raw JSON.
+- Keep prose outside the $$ delimiters, for example A[\"State: $$E = mc^2$$\"].
+Make sure correctAnswer EXACTLY matches one of the options strings.`;
 
     const response = await generateWithFallback({
       contents: prompt,

@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import connectToDatabase from "@/lib/mongoose";
 import Note from "@/lib/models/Note";
 import { jsPDF } from "jspdf";
+import { convertMathInText, restorePipes } from "@/lib/latexToPlainText";
 
 /**
  * Sanitizes strings for jsPDF standard fonts:
@@ -12,7 +13,7 @@ import { jsPDF } from "jspdf";
  */
 function cleanForPdf(text: string): string {
   if (!text) return "";
-  return text
+  return convertMathInText(text)
     // Replace math symbols and operators
     .replace(/[×✕]/g, "*")
     .replace(/[÷]/g, "/")
@@ -53,6 +54,17 @@ function cleanForPdf(text: string): string {
     )
     .replace(/[^\x00-\x7F]/g, "") // Ensure pure ASCII compatibility for jsPDF standard fonts
     .trim();
+}
+
+/**
+ * Same as `cleanForPdf`, but also restores literal "|" characters that came
+ * from math (bra-kets, absolute value, \vert, \mid). Use this for any text
+ * that does NOT get parsed as a markdown table row — `cleanForPdf`'s raw
+ * output keeps those pipes as a placeholder so table-row splitting on "|"
+ * doesn't get confused by pipes that originated from math, not table syntax.
+ */
+function cleanForPdfProse(text: string): string {
+  return restorePipes(cleanForPdf(text));
 }
 
 /**
@@ -208,9 +220,9 @@ export async function GET(
     };
 
     // ── Document Header ──
-    const cleanTitle = cleanForPdf(note.title || note.topic);
-    const cleanTopic = cleanForPdf(note.topic);
-    const cleanLevel = cleanForPdf(note.classLevel);
+    const cleanTitle = cleanForPdfProse(note.title || note.topic);
+    const cleanTopic = cleanForPdfProse(note.topic);
+    const cleanLevel = cleanForPdfProse(note.classLevel);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
@@ -256,7 +268,7 @@ export async function GET(
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(51, 65, 85); // Slate-700
-      const cleanSummary = cleanForPdf(note.summary);
+      const cleanSummary = cleanForPdfProse(note.summary);
       const summaryLines = doc.splitTextToSize(cleanSummary, contentWidth);
       checkPageBreak(summaryLines.length * 14 + 10);
       doc.text(summaryLines, margin, yPos);
@@ -348,7 +360,7 @@ export async function GET(
                 const cells = rowLine
                   .split("|")
                   .slice(1, -1)
-                  .map((c) => c.trim().replace(/`/g, ""));
+                  .map((c) => restorePipes(c.trim().replace(/\*\*(.*?)\*\*/g, "$1").replace(/`/g, "")));
                 if (cells.length > 0) {
                   tableRows.push(cells);
                 }
@@ -379,7 +391,7 @@ export async function GET(
 
             // Section Header (MUST have space after #, e.g. "## Header", not "#include")
             if (/^#{1,4}\s+/.test(trimmed)) {
-              const headerText = trimmed.replace(/^#{1,4}\s+/, "").replace(/\*\*/g, "");
+              const headerText = restorePipes(trimmed.replace(/^#{1,4}\s+/, "").replace(/\*\*/g, ""));
               checkPageBreak(35);
               yPos += 8;
               doc.setFont("helvetica", "bold");
@@ -389,7 +401,7 @@ export async function GET(
               yPos += 16;
             } else if (trimmed.startsWith("-") || trimmed.startsWith("*") || /^\d+\./.test(trimmed)) {
               // Bullet item
-              const bulletText = trimmed.replace(/^[-*]\s*/, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/`/g, "");
+              const bulletText = restorePipes(trimmed.replace(/^[-*]\s*/, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/`/g, ""));
               doc.setFont("helvetica", "normal");
               doc.setFontSize(9.5);
               doc.setTextColor(51, 65, 85);
@@ -402,7 +414,7 @@ export async function GET(
               yPos += lines.length * 13 + 4;
             } else {
               // Plain paragraph
-              const plainText = trimmed.replace(/\*\*(.*?)\*\*/g, "$1").replace(/`/g, "");
+              const plainText = restorePipes(trimmed.replace(/\*\*(.*?)\*\*/g, "$1").replace(/`/g, ""));
               doc.setFont("helvetica", "normal");
               doc.setFontSize(9.5);
               doc.setTextColor(51, 65, 85);
@@ -430,7 +442,7 @@ export async function GET(
       doc.text("QUICK REVISION & KEY POINTS", margin + 10, yPos + 15);
       yPos += 30;
 
-      const cleanShort = cleanForPdf(note.shortNotes)
+      const cleanShort = cleanForPdfProse(note.shortNotes)
         .replace(/^#+\s+/gm, "")
         .replace(/\*\*(.*?)\*\*/g, "$1")
         .replace(/`/g, "");
@@ -467,8 +479,8 @@ export async function GET(
 
       note.importantQuestions.forEach((item: any, idx: number) => {
         const isObj = typeof item === "object" && item !== null;
-        const qText = cleanForPdf(isObj ? item.question : String(item)).replace(/`/g, "");
-        const aText = cleanForPdf(isObj ? item.answer || "" : "").replace(/`/g, "");
+        const qText = cleanForPdfProse(isObj ? item.question : String(item)).replace(/`/g, "");
+        const aText = cleanForPdfProse(isObj ? item.answer || "" : "").replace(/`/g, "");
 
         checkPageBreak(40);
 
@@ -509,8 +521,8 @@ export async function GET(
 
       note.mcqs.forEach((mcq: any, idx: number) => {
         checkPageBreak(60);
-        const cleanQ = cleanForPdf(mcq.question).replace(/`/g, "");
-        const cleanAns = cleanForPdf(mcq.correctAnswer).replace(/`/g, "");
+        const cleanQ = cleanForPdfProse(mcq.question).replace(/`/g, "");
+        const cleanAns = cleanForPdfProse(mcq.correctAnswer).replace(/`/g, "");
         const options = Array.isArray(mcq.options) ? mcq.options : [];
 
         // MCQ Question
@@ -529,7 +541,7 @@ export async function GET(
 
           const optionLabels = ["A", "B", "C", "D", "E", "F"];
           options.forEach((opt: string, optIdx: number) => {
-            const cleanOpt = cleanForPdf(String(opt)).replace(/`/g, "");
+            const cleanOpt = cleanForPdfProse(String(opt)).replace(/`/g, "");
             const label = optionLabels[optIdx] || `${optIdx + 1}`;
             const optLines = doc.splitTextToSize(`(${label}) ${cleanOpt}`, contentWidth - 20);
             checkPageBreak(optLines.length * 12 + 3);

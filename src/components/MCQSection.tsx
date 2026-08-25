@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Trophy,
 } from "lucide-react";
+import MathText from "@/components/MathText";
 
 export interface MCQItem {
   question: string;
@@ -261,7 +262,7 @@ export default function MCQSection({
                   <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold mt-0.5 flex-shrink-0">
                     {index + 1}
                   </span>
-                  <span>{mcq.question}</span>
+                  <MathText>{mcq.question}</MathText>
                 </h4>
                 <div className="space-y-2.5">
                   {mcq.options.map((opt, optIndex) => (
@@ -278,7 +279,7 @@ export default function MCQSection({
                         <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold flex-shrink-0">
                           {String.fromCharCode(65 + optIndex)}
                         </span>
-                        <span className="leading-relaxed">{opt}</span>
+                        <MathText className="leading-relaxed">{opt}</MathText>
                       </div>
                       {submitted && mcq.correctAnswer === opt && (
                         <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 ml-2" />
@@ -501,7 +502,7 @@ export default function MCQSection({
                                   <span className="text-indigo-600 dark:text-indigo-400 mr-2 font-bold">
                                     Q{qIdx + 1}.
                                   </span>
-                                  {q.question}
+                                  <MathText>{q.question}</MathText>
                                 </p>
                                 {wasAnswered ? (
                                   isUserCorrect ? (
@@ -546,7 +547,7 @@ export default function MCQSection({
                                         <span className="w-5 h-5 rounded-md bg-white dark:bg-slate-600 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-500">
                                           {String.fromCharCode(65 + oIdx)}
                                         </span>
-                                        <span>{opt}</span>
+                                        <MathText>{opt}</MathText>
                                       </div>
                                       {isCorrect && (
                                         <span className="text-xs text-green-700 dark:text-green-300 font-bold ml-2">
