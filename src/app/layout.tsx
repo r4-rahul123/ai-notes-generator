@@ -35,9 +35,11 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <body
-          className="min-h-full flex flex-col bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors"
+          className="min-h-full flex flex-col bg-white dark:bg-[#030712] text-slate-900 dark:text-slate-100 transition-colors selection:bg-indigo-500/30"
           suppressHydrationWarning
         >
+          {/* Subtle Premium Glow for Dark Mode */}
+          <div className="fixed inset-0 z-[-1] pointer-events-none hidden dark:block bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.15),rgba(255,255,255,0))]" />
           <ThemeProvider>
             <Navbar />
             <main className="flex-1">

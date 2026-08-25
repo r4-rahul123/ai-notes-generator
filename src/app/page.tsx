@@ -53,7 +53,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4 py-12 sm:py-16">
+    <div className="min-h-[calc(100vh-4rem)] px-4 py-12 sm:py-16 relative">
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Hero Section */}
         <div className="text-center space-y-6 animate-fade-in-up">
@@ -124,7 +124,7 @@ export default function Home() {
               <Link
                 key={item.title}
                 href={item.href}
-                className="group relative bg-white dark:bg-slate-800/90 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 flex flex-col justify-between"
+                className="group relative bg-white dark:bg-white/[0.04] backdrop-blur-xl p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 flex flex-col justify-between"
               >
                 <div>
                   {/* Top Bar: Icon + Step Badge */}

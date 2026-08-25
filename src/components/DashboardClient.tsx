@@ -165,7 +165,7 @@ export default function DashboardClient({
   }, [notesList, searchQuery, selectedLevel, sortBy]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen relative">
       <div className="container max-w-6xl mx-auto py-10 px-4">
         {/* ── Top Header Bar ── */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 animate-fade-in-up">
@@ -174,7 +174,7 @@ export default function DashboardClient({
               <Flame className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
               Student Learning Space
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
+            <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent drop-shadow-sm">
               Study Dashboard
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-0.5 text-sm">
@@ -191,7 +191,7 @@ export default function DashboardClient({
             <Link href="/pricing">
               <Button
                 variant="outline"
-                className="dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 text-sm"
+                className="dark:border-white/[0.08] dark:text-slate-200 dark:hover:bg-slate-800 text-sm"
               >
                 Buy Credits
               </Button>
@@ -207,7 +207,7 @@ export default function DashboardClient({
         {/* ── 📊 Feature 5: Student Study Analytics Stats Widget ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {/* Stat 1: Total Notes */}
-          <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center gap-4">
+          <div className="bg-white dark:bg-white/[0.04] backdrop-blur-xl rounded-2xl p-5 border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
               <BookOpen className="h-6 w-6" />
             </div>
@@ -222,7 +222,7 @@ export default function DashboardClient({
           </div>
 
           {/* Stat 2: Quiz Accuracy */}
-          <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center gap-4">
+          <div className="bg-white dark:bg-white/[0.04] backdrop-blur-xl rounded-2xl p-5 border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Target className="h-6 w-6" />
             </div>
@@ -237,7 +237,7 @@ export default function DashboardClient({
           </div>
 
           {/* Stat 3: Quizzes Completed */}
-          <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center gap-4">
+          <div className="bg-white dark:bg-white/[0.04] backdrop-blur-xl rounded-2xl p-5 border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
               <Trophy className="h-6 w-6 text-amber-500" />
             </div>
@@ -252,7 +252,7 @@ export default function DashboardClient({
           </div>
 
           {/* Stat 4: Visual Flowcharts */}
-          <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center gap-4">
+          <div className="bg-white dark:bg-white/[0.04] backdrop-blur-xl rounded-2xl p-5 border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
               <Sparkles className="h-6 w-6" />
             </div>
@@ -268,27 +268,26 @@ export default function DashboardClient({
         </div>
 
         {/* ── 🔍 Feature 3: Search, Filters & Sorting Controls ── */}
-        <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-xs mb-8 space-y-4">
+        <div className="bg-white dark:bg-white/[0.04] backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-white/[0.08] shadow-xs mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             {/* Search Input */}
             <div className="relative w-full sm:flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
               <Input
                 type="text"
                 placeholder="Search notes by topic, title, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-9 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl text-sm"
+                className="pl-11 pr-9 py-6 bg-slate-50 dark:bg-white/[0.03] backdrop-blur-md border-slate-200 dark:border-white/[0.1] rounded-2xl text-base shadow-sm focus-visible:ring-indigo-500/50 transition-all duration-300 hover:border-slate-300 dark:hover:border-white/[0.15]"
               />
-              {searchQuery && (
-                <button
-                  suppressHydrationWarning
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
             </div>
 
             {/* Sort Dropdown */}
@@ -298,7 +297,7 @@ export default function DashboardClient({
                 suppressHydrationWarning
                 value={sortBy}
                 onChange={(e: any) => setSortBy(e.target.value)}
-                className="w-full sm:w-auto text-xs font-semibold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2.5 outline-none cursor-pointer"
+                className="w-full sm:w-auto text-xs font-semibold bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2.5 outline-none cursor-pointer"
               >
                 <option value="newest">Sort: Newest First</option>
                 <option value="oldest">Sort: Oldest First</option>
@@ -309,7 +308,7 @@ export default function DashboardClient({
           </div>
 
           {/* Level Filter Chips */}
-          <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-slate-100 dark:border-slate-700/60">
+          <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-slate-100 dark:border-white/[0.08]/60">
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1 flex items-center gap-1">
               <ListFilter className="h-3.5 w-3.5" /> Filter Level:
             </span>
@@ -337,7 +336,7 @@ export default function DashboardClient({
         {/* ── Notes Grid ── */}
         {notesList.length === 0 ? (
           /* Empty Notes State */
-          <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+          <div className="text-center py-20 bg-white dark:bg-white/[0.04] backdrop-blur-md rounded-3xl border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
             <FileText className="h-14 w-14 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
               No notes created yet
@@ -353,7 +352,7 @@ export default function DashboardClient({
           </div>
         ) : filteredNotes.length === 0 ? (
           /* Zero Search Results State */
-          <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs space-y-3">
+          <div className="text-center py-16 bg-white dark:bg-white/[0.04] backdrop-blur-md rounded-3xl border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3">
             <Search className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto" />
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
               No notes matching &quot;{searchQuery}&quot;
@@ -385,7 +384,7 @@ export default function DashboardClient({
               return (
                 <Card
                   key={note._id}
-                  className="card-hover relative border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 rounded-3xl shadow-xs flex flex-col justify-between overflow-hidden"
+                  className="group relative border border-slate-200/80 dark:border-white/[0.1] bg-white dark:bg-white/[0.03] backdrop-blur-2xl rounded-[1.5rem] shadow-xs flex flex-col justify-between overflow-hidden transition-all duration-500 ease-out hover:shadow-2xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/20 hover:-translate-y-1.5 hover:border-indigo-500/30 dark:hover:border-indigo-400/30"
                 >
                   {/* Delete Button (Top Right) */}
                   <button
@@ -439,7 +438,7 @@ export default function DashboardClient({
                     </div>
                   </CardContent>
 
-                  <CardFooter className="pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between gap-2">
+                  <CardFooter className="pt-3 border-t border-slate-100 dark:border-white/[0.08]/60 flex items-center justify-between gap-2">
                     {/* View Button */}
                     <Link href={`/notes/${note._id}`} className="flex-1">
                       <Button

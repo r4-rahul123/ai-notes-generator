@@ -9,7 +9,7 @@ export default async function Navbar() {
   const { userId } = await auth();
 
   return (
-    <nav className="border-b bg-white dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-40">
+    <nav className="border-b bg-white/80 dark:bg-[#030712]/70 backdrop-blur-md dark:border-slate-800/60 sticky top-0 z-40 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">

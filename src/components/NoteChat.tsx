@@ -217,7 +217,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="no-print fixed bottom-6 right-6 z-50 flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+          className="no-print fixed bottom-6 right-6 z-50 flex flex-col bg-white dark:bg-[#030712]/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-white/[0.08] overflow-hidden"
           style={{ width: size.w, height: size.h }}
         >
           {/* Resize Handle (top-left corner) */}
@@ -264,14 +264,14 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
 
           {/* History Notice */}
           {messages.length > 1 && (
-            <div className="text-center text-xs text-slate-400 dark:text-slate-500 py-1 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 flex-shrink-0 flex items-center justify-center gap-1 select-none">
+            <div className="text-center text-xs text-slate-400 dark:text-slate-500 py-1 bg-slate-50 dark:bg-white/[0.04] border-b border-slate-100 dark:border-white/[0.08] flex-shrink-0 flex items-center justify-center gap-1 select-none">
               <Database className="h-3 w-3 text-indigo-400" />
               Vector-Indexed Context & History Saved
             </div>
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-900">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-[#030712]/90 backdrop-blur-xl">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
@@ -292,7 +292,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
                     className={`px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-sm"
-                        : "bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/90 text-slate-900 dark:text-slate-100 rounded-tl-sm shadow-xs"
+                        : "bg-white dark:bg-white/[0.04] backdrop-blur-md border border-slate-200/90 dark:border-white/[0.08] text-slate-900 dark:text-slate-100 rounded-tl-sm shadow-xs"
                     }`}
                   >
                     {msg.role === "user" ? (
@@ -327,7 +327,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
                 <div className="w-7 h-7 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-blue-600 dark:text-blue-400">
                   <Bot className="h-3.5 w-3.5" />
                 </div>
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm px-4 py-3 shadow-xs">
+                <div className="bg-white dark:bg-white/[0.04] backdrop-blur-md border border-slate-200 dark:border-white/[0.08] rounded-2xl rounded-tl-sm px-4 py-3 shadow-xs">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                       <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-spin" />
@@ -342,7 +342,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
 
           {/* Suggested Questions */}
           {messages.length === 1 && (
-            <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex-shrink-0">
+            <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.04] backdrop-blur-md border-t border-slate-100 dark:border-white/[0.08] flex-shrink-0">
               <p className="text-xs text-slate-400 mb-1.5 font-medium">Try asking:</p>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -366,7 +366,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
           )}
 
           {/* Input */}
-          <div className="px-4 py-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex gap-2 items-center flex-shrink-0">
+          <div className="px-4 py-3 bg-white dark:bg-[#030712]/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/[0.08] flex gap-2 items-center flex-shrink-0">
             <input
               ref={inputRef}
               type="text"
@@ -375,7 +375,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
               onKeyDown={handleKeyDown}
               placeholder="Ask anything (searches vector embeddings)..."
               disabled={loading}
-              className="flex-1 text-xs sm:text-sm px-4 py-2.5 rounded-full border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 disabled:opacity-50 bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400"
+              className="flex-1 text-xs sm:text-sm px-4 py-2.5 rounded-full border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 disabled:opacity-50 bg-slate-50 dark:bg-white/[0.04] backdrop-blur-md dark:text-slate-100 dark:placeholder-slate-400"
             />
             <button
               onClick={sendMessage}

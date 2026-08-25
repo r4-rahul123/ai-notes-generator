@@ -131,7 +131,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
 
   if (!noteDoc) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">Note not found.</p>
           <Link href="/dashboard" className="text-blue-600 dark:text-blue-400 mt-2 inline-block hover:underline">← Back to Dashboard</Link>
@@ -149,7 +149,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
   return (
     <>
       <AutoPrinter />
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-10 px-4 sm:px-6">
+      <div className="min-h-screen py-10 px-4 sm:px-6 relative">
         <div className="container max-w-4xl mx-auto">
 
           {/* Back button */}
@@ -158,7 +158,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
           </Link>
 
           {/* Header Card */}
-          <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-6 sm:p-8 mb-6 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 animate-fade-in-up backdrop-blur-xs">
+          <div className="bg-white dark:bg-white/[0.04] backdrop-blur-xl rounded-2xl p-6 sm:p-8 mb-6 border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 animate-fade-in-up backdrop-blur-xs">
             <div className="space-y-3">
               <div className="flex gap-2.5 flex-wrap items-center">
                 <span className="text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-800 flex items-center gap-1.5 shadow-2xs">
@@ -235,7 +235,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* Main Content Document */}
-          <div id="note-content" className="space-y-12 bg-white dark:bg-slate-800/90 p-6 sm:p-10 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700/80 animate-scale-in">
+          <div id="note-content" className="space-y-12 bg-white dark:bg-white/[0.04] backdrop-blur-xl p-6 sm:p-10 rounded-2xl shadow-sm border border-slate-200/80 dark:border-white/[0.08] animate-scale-in">
 
             {/* Summary Section */}
             <section className="bg-gradient-to-br from-blue-50/60 via-indigo-50/30 to-purple-50/40 dark:from-blue-950/20 dark:via-indigo-950/15 dark:to-purple-950/20 p-6 sm:p-7 rounded-2xl border border-blue-100 dark:border-blue-900/40">
@@ -372,7 +372,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* Interactive MCQ Practice Section with History & Retry */}
-          <div className="no-print mt-12 bg-white dark:bg-slate-800/90 p-6 sm:p-10 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm animate-fade-in-up">
+          <div className="no-print mt-12 bg-white dark:bg-white/[0.04] backdrop-blur-xl p-6 sm:p-10 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-sm animate-fade-in-up">
             <MCQSection
               noteId={note._id.toString()}
               initialMcqs={note.mcqs || []}

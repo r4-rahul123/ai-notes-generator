@@ -306,7 +306,7 @@ export default function GeneratePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 py-12 px-4">
+    <div className="min-h-screen py-12 px-4 relative">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in-up">
@@ -350,7 +350,7 @@ export default function GeneratePage() {
         </div>
 
         {/* Form / Loading Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-6 sm:p-8 animate-scale-in">
+        <div className="bg-white dark:bg-white/[0.04] backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-sm p-6 sm:p-8 animate-scale-in">
           {loading ? (
             /* 🌟 Simple Minimal Progress Bar & Percentage */
             <div className="py-12 px-4 space-y-4 text-center animate-fade-in max-w-lg mx-auto">
