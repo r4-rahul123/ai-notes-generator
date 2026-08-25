@@ -150,9 +150,30 @@ npm run worker
 
 ---
 
-## 🚀 Deploy to Vercel
+## 🚀 Cloud Deployment Architecture (Free Tier)
 
-1. Push your repository to GitHub.
-2. Go to [Vercel](https://vercel.com) and click **"Add New Project"** -> **"Import"**.
-3. Add your Environment Variables in Vercel settings (You will need a hosted Redis service like Upstash for production).
-4. Click **Deploy**. Your app will be live with full global WhatsApp sharing!
+This app uses an enterprise-grade architecture. To deploy it on the internet for free 24/7 without local Docker, you need to deploy across 3 platforms:
+
+### 1. Upstash (Redis Database)
+1. Go to [console.upstash.com](https://console.upstash.com) and create a free Redis database.
+2. Copy the `rediss://...` URL (make sure to reveal the password first).
+3. Replace `REDIS_URL` in your `.env.local` and use this for the other platforms.
+
+### 2. Render (Background AI Worker)
+Because Vercel serverless functions timeout, the heavy AI PDF parsing and note generation is done by a dedicated background worker on Render.
+1. Go to [dashboard.render.com](https://dashboard.render.com) and create a **New Web Service**.
+2. Connect your GitHub repository.
+3. Set the details:
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm run worker:prod`
+4. Select the **Free ($0/month)** instance type.
+5. Add your Environment Variables (`MONGODB_URI`, `GEMINI_API_KEY`, `REDIS_URL`).
+6. Click **Create Web Service**.
+
+### 3. Vercel (Frontend & API)
+1. Go to [vercel.com](https://vercel.com) and click **"Add New Project"**.
+2. Import this GitHub repository.
+3. Add ALL your Environment Variables from `.env.local` into Vercel settings.
+4. Click **Deploy**.
+
+Your app is now live with a public URL! Visitors can generate notes and the Render worker will process them seamlessly in the background.
