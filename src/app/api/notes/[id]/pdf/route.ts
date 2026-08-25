@@ -286,63 +286,74 @@ export async function GET(
       doc.text("DETAILED STUDY NOTES & CONCEPTS", margin + 10, yPos + 15);
       yPos += 30;
 
-      // Clean whole content while keeping backticks intact
-      const rawContent = cleanForPdf(note.content);
-      const sections = rawContent.split(/```/);
+      // Split content by ``` BEFORE running cleanForPdf so mermaid/code
+      // blocks are identified first, then each prose section is cleaned.
+      const sections = note.content.split(/```/);
 
       for (let sIdx = 0; sIdx < sections.length; sIdx++) {
         const section = sections[sIdx];
         const isCodeBlock = sIdx % 2 === 1;
 
         if (isCodeBlock) {
-          // 💻 Render Code Block in dark IDE style box
           const lines = section.trim().split("\n");
-          const firstLine = lines[0].trim();
-          const hasLang = firstLine.length < 20 && !firstLine.includes(" ") && !firstLine.includes("(");
-          const lang = hasLang ? firstLine : "code";
-          const codeLines = (hasLang ? lines.slice(1) : lines).join("\n");
+          const firstLine = lines[0].trim().toLowerCase();
 
-          const splitCode = doc.splitTextToSize(codeLines, contentWidth - 24);
-          const codeBodyHeight = splitCode.length * 12 + 16;
-          const totalBoxHeight = codeBodyHeight + 20;
+          // ── Mermaid charts: show a simple placeholder in PDF ──
+          if (firstLine === "mermaid") {
+            checkPageBreak(36);
+            doc.setFillColor(239, 246, 255);
+            doc.setDrawColor(147, 197, 253);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(margin, yPos, contentWidth, 28, 4, 4, "FD");
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(9);
+            doc.setTextColor(37, 99, 235);
+            doc.text("[ Flowchart / Concept Map — view online for interactive diagram ]", margin + 10, yPos + 18);
+            yPos += 40;
+          } else {
+            // 💻 Render Code Block in dark IDE style box
+            const hasLang = firstLine.length < 20 && !firstLine.includes(" ") && !firstLine.includes("(");
+            const lang = hasLang ? firstLine : "code";
+            const codeLines = (hasLang ? lines.slice(1) : lines).join("\n");
 
-          // Ensure entire code block or first page fits with proper break
-          checkPageBreak(Math.min(totalBoxHeight, 150));
+            const splitCode = doc.splitTextToSize(codeLines, contentWidth - 24);
+            const codeBodyHeight = splitCode.length * 12 + 16;
+            const totalBoxHeight = codeBodyHeight + 20;
 
-          // 1. Code Container Outer Box (Dark Theme #0f172a)
-          doc.setFillColor(15, 23, 42);
-          doc.setDrawColor(51, 65, 85);
-          doc.setLineWidth(0.5);
-          doc.roundedRect(margin, yPos, contentWidth, totalBoxHeight, 4, 4, "FD");
+            checkPageBreak(Math.min(totalBoxHeight, 150));
 
-          // 2. Code Header Bar
-          doc.setFillColor(30, 41, 59); // Slate-800
-          doc.rect(margin, yPos, contentWidth, 18, "F");
+            doc.setFillColor(15, 23, 42);
+            doc.setDrawColor(51, 65, 85);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(margin, yPos, contentWidth, totalBoxHeight, 4, 4, "FD");
 
-          // Window control dots
-          doc.setFillColor(239, 68, 68); // Red dot
-          doc.circle(margin + 10, yPos + 9, 2.5, "F");
-          doc.setFillColor(245, 158, 11); // Yellow dot
-          doc.circle(margin + 17, yPos + 9, 2.5, "F");
-          doc.setFillColor(34, 197, 94); // Green dot
-          doc.circle(margin + 24, yPos + 9, 2.5, "F");
+            doc.setFillColor(30, 41, 59);
+            doc.rect(margin, yPos, contentWidth, 18, "F");
 
-          // Language Label
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(8);
-          doc.setTextColor(148, 163, 184);
-          doc.text(lang.toUpperCase(), margin + 34, yPos + 12);
+            doc.setFillColor(239, 68, 68);
+            doc.circle(margin + 10, yPos + 9, 2.5, "F");
+            doc.setFillColor(245, 158, 11);
+            doc.circle(margin + 17, yPos + 9, 2.5, "F");
+            doc.setFillColor(34, 197, 94);
+            doc.circle(margin + 24, yPos + 9, 2.5, "F");
 
-          // 3. Code Lines
-          doc.setFont("courier", "normal");
-          doc.setFontSize(8.5);
-          doc.setTextColor(248, 250, 252); // Crisp white/slate
-          doc.text(splitCode, margin + 12, yPos + 32);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text(lang.toUpperCase(), margin + 34, yPos + 12);
 
-          yPos += totalBoxHeight + 14;
+            doc.setFont("courier", "normal");
+            doc.setFontSize(8.5);
+            doc.setTextColor(248, 250, 252);
+            doc.text(splitCode, margin + 12, yPos + 32);
+
+            yPos += totalBoxHeight + 14;
+          }
         } else {
           // Render markdown paragraphs, headers, and tables
-          const paragraphs = section.split("\n");
+          // Run full LaTeX→plain-text conversion on each prose section
+          const cleanedSection = cleanForPdf(section);
+          const paragraphs = cleanedSection.split("\n");
           let pIdx = 0;
 
           while (pIdx < paragraphs.length) {
@@ -389,7 +400,7 @@ export async function GET(
               continue;
             }
 
-            // Section Header (MUST have space after #, e.g. "## Header", not "#include")
+            // Section Header
             if (/^#{1,4}\s+/.test(trimmed)) {
               const headerText = restorePipes(trimmed.replace(/^#{1,4}\s+/, "").replace(/\*\*/g, ""));
               checkPageBreak(35);
