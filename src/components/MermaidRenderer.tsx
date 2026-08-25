@@ -222,7 +222,7 @@ export default function MermaidRenderer({ chart }: MermaidRendererProps) {
   return (
     <div
       ref={containerRef}
-      className="mermaid-wrapper flex justify-center overflow-x-auto my-6 p-4 sm:p-6 bg-slate-50/70 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs [&_svg]:max-w-full [&_svg]:h-auto dark:[&_svg_.edgePath_.path]:!stroke-[#60a5fa] dark:[&_svg_.flowchart-link]:!stroke-[#60a5fa] dark:[&_svg_.marker]:!fill-[#60a5fa] dark:[&_svg_.marker]:!stroke-[#60a5fa] dark:[&_svg_.nodeLabel]:!fill-white dark:[&_svg_.nodeLabel]:!color-white dark:[&_svg_text]:!fill-white dark:[&_svg_.node_rect]:!fill-[#1e293b] dark:[&_svg_.node_rect]:!stroke-[#60a5fa] dark:[&_svg_.node_polygon]:!fill-[#1e293b] dark:[&_svg_.node_polygon]:!stroke-[#60a5fa] dark:[&_svg_.node_circle]:!fill-[#1e293b] dark:[&_svg_.node_circle]:!stroke-[#60a5fa]"
+      className="mermaid-wrapper w-full text-center overflow-x-auto my-6 p-4 sm:p-6 bg-slate-50/70 dark:bg-white/[0.04] backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] rounded-2xl shadow-xs [&_svg]:inline-block [&_svg]:max-w-full [&_svg]:h-auto dark:[&_svg_.edgePath_.path]:!stroke-[#60a5fa] dark:[&_svg_.flowchart-link]:!stroke-[#60a5fa] dark:[&_svg_.marker]:!fill-[#60a5fa] dark:[&_svg_.marker]:!stroke-[#60a5fa] dark:[&_svg_.nodeLabel]:!fill-white dark:[&_svg_.nodeLabel]:!color-white dark:[&_svg_text]:!fill-white dark:[&_svg_.node_rect]:!fill-[#1e293b] dark:[&_svg_.node_rect]:!stroke-[#60a5fa] dark:[&_svg_.node_polygon]:!fill-[#1e293b] dark:[&_svg_.node_polygon]:!stroke-[#60a5fa] dark:[&_svg_.node_circle]:!fill-[#1e293b] dark:[&_svg_.node_circle]:!stroke-[#60a5fa]"
       dangerouslySetInnerHTML={{ __html: svgContent }}
     />
   );
