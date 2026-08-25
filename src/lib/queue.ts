@@ -18,7 +18,7 @@ export const notesQueue = new Queue<GenerateNoteJobData>(notesQueueName, {
       type: 'exponential',
       delay: 5000,
     },
-    removeOnComplete: true, // Optional: Keep completed jobs for history, or remove to save space
+    removeOnComplete: false, // Must be false so the frontend can read the 'completed' state!
     removeOnFail: false,
   },
 });
