@@ -31,7 +31,8 @@ FORMATTING & CONTENT INSTRUCTIONS:
 4. If code or technical formulas are relevant, include concise \`code\` or \`\`\`code\`\`\` snippets.
 5. If a comparison is asked, use a clean markdown table with proper headers.
 6. Keep the answer comprehensive, structured, and easy for a student to study.
-7. NEVER say "refer to notes" or "read above". Give the complete, factual, independent answer immediately.`;
+7. NEVER say "refer to notes" or "read above". Give the complete, factual, independent answer immediately.
+8. MATH FORMATTING: wrap every formula or LaTeX expression in matched math delimiters — use $...$ for inline math and $$...$$ for display math. Always close a span with the same delimiter that opened it, and never emit bare LaTeX commands outside delimiters.`;
 
     const response = await generateWithFallback({
       contents: [

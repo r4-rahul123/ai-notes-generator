@@ -74,7 +74,8 @@ INSTRUCTIONS:
 2. If the answer is directly supported by the retrieved context, explain clearly and concisely.
 3. If it's a general academic question on this topic, provide a helpful and conceptual explanation.
 4. Format your response cleanly using markdown (bullet points, bold key terms, simple code blocks).
-5. Keep your tone encouraging, professional, and easy to understand.`;
+5. Keep your tone encouraging, professional, and easy to understand.
+6. MATH FORMATTING: wrap every formula or LaTeX expression in matched math delimiters — use $...$ for inline math and $$...$$ for display math. Always close a span with the same delimiter that opened it (never mix $ with \\( or \\[), and never emit bare LaTeX commands outside delimiters.`;
 
     const response = await generateWithFallback({
       contents: [

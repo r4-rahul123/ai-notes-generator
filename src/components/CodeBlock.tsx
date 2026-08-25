@@ -51,7 +51,7 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
         {/* Copy Button */}
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition-all text-xs font-sans font-medium active:scale-95 border border-slate-600/50"
+          className="no-print flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition-all text-xs font-sans font-medium active:scale-95 border border-slate-600/50"
           title="Copy code to clipboard"
         >
           {copied ? (

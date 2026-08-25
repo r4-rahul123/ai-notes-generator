@@ -202,7 +202,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-3 rounded-full shadow-2xl transition-all hover:scale-105 font-semibold text-sm sm:text-base border border-white/20"
+          className="no-print fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-3 rounded-full shadow-2xl transition-all hover:scale-105 font-semibold text-sm sm:text-base border border-white/20"
         >
           <div className="p-1 bg-white/20 rounded-full">
             <MessageCircle className="h-4 w-4" />
@@ -217,7 +217,7 @@ export default function NoteChat({ noteId, noteContext }: NoteChatProps) {
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+          className="no-print fixed bottom-6 right-6 z-50 flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
           style={{ width: size.w, height: size.h }}
         >
           {/* Resize Handle (top-left corner) */}

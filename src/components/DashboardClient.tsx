@@ -385,14 +385,24 @@ export default function DashboardClient({
               return (
                 <Card
                   key={note._id}
-                  className="card-hover border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 rounded-3xl shadow-xs flex flex-col justify-between overflow-hidden"
+                  className="card-hover relative border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 rounded-3xl shadow-xs flex flex-col justify-between overflow-hidden"
                 >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-2 mb-2">
+                  {/* Delete Button (Top Right) */}
+                  <button
+                    onClick={() => handleDelete(note._id)}
+                    disabled={isDeleting === note._id}
+                    className="absolute top-3 right-3 p-2 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50"
+                    title="Delete Note"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+
+                  <CardHeader className="pb-3 pt-6">
+                    <div className="flex items-center gap-2 mb-2 pr-8">
                       <span className="text-[11px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-200/70 dark:border-blue-800/70 truncate">
                         {note.topic}
                       </span>
-                      <span className="text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full shrink-0">
                         {note.classLevel}
                       </span>
                     </div>
@@ -421,8 +431,8 @@ export default function DashboardClient({
                       )}
 
                       {note.mermaidCharts && note.mermaidCharts.length > 0 && (
-                        <span className="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                          <Sparkles className="h-3 w-3" />
+                        <span className="inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                          <Sparkles className="h-3 w-3 text-purple-500" />
                           {note.mermaidCharts.length} Diagrams
                         </span>
                       )}
@@ -452,18 +462,6 @@ export default function DashboardClient({
 
                     {/* PDF Export Button */}
                     <PDFExportButton noteId={note._id} />
-
-                    {/* Delete Button */}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/20 px-2"
-                      onClick={() => handleDelete(note._id)}
-                      disabled={isDeleting === note._id}
-                      title="Delete Note"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </CardFooter>
                 </Card>
               );

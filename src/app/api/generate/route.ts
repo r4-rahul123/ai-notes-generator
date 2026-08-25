@@ -65,6 +65,7 @@ ${additionalInstructions ? `Special instructions: ${additionalInstructions}` : "
 
 IMPORTANT MATHEMATICAL FORMATTING RULES for EVERY user-visible text field (summary, content, shortNotes, questions, answers, MCQs, and options):
 - Use \\\\( ... \\\\) for INLINE math and \\\\[ ... \\\\] for DISPLAY/BLOCK math. NEVER use dollar signs for text-field math and NEVER wrap formulas in code backticks.
+- CRITICAL DELIMITER RULE: every math span must open and close with the SAME delimiter style. A span opened with \\\\( MUST be closed with \\\\) — never with a dollar sign. A span opened with \\\\[ MUST be closed with \\\\]. Never mix the two styles inside one span, and never leave a span unclosed.
 - The response is raw JSON, so EVERY LaTeX backslash must be escaped as a double backslash. Example raw JSON string: "\\\\(E = \\\\frac{1}{2}mc^2\\\\)".
 - Do not emit bare LaTeX commands outside math delimiters.
 
@@ -118,13 +119,14 @@ You MUST respond with a RAW JSON object (no markdown code blocks around it). Fol
     }
   ],
   "mermaidCharts": [
-    "graph TD\\n  A[\\\"State evolves: $$|\\\\psi(t)\\\\rangle = e^{-i\\\\hat{H}t/\\\\hbar}|\\\\psi(0)\\\\rangle$$\\\"] --> B[\\\"Next concept\\\"]"
+    "graph TD\\n  A[\\\"State evolves: $$\\\\vert \\\\psi(t)\\\\rangle = e^{-i\\\\hat{H}t/\\\\hbar} \\\\vert \\\\psi(0)\\\\rangle$$\\\"] --> B[\\\"Next concept\\\"]"
   ]
 }
 
 Provide at least 6 MCQs and at least 2 mermaid charts. In Mermaid charts:
 - ALWAYS wrap every node label in double quotes, like A[\"Label (with details)\"].
 - Mermaid math is different from content-field math: wrap every formula in $$...$$ inside the quoted label. NEVER use \\(...\\) or \\[...\\] in Mermaid charts.
+- NEVER use the | pipe character inside $$...$$ math in labels — write \\\\vert instead (pipes break Mermaid's edge syntax).
 - Because the chart is inside JSON, escape every LaTeX backslash as a double backslash. For example, output \\\\psi rather than \\psi in the raw JSON.
 - Keep prose outside the $$ delimiters, for example A[\"State: $$E = mc^2$$\"].
 Make sure correctAnswer EXACTLY matches one of the options strings.`;
@@ -133,6 +135,9 @@ Make sure correctAnswer EXACTLY matches one of the options strings.`;
       contents: prompt,
       config: {
         responseMimeType: "application/json",
+        // Large cap — the full JSON (5 answers + 6 MCQs + charts) is token-heavy
+        // and a truncated response loses the arrays that sit at the END of it.
+        maxOutputTokens: 16384,
       },
     });
 
@@ -148,6 +153,78 @@ Make sure correctAnswer EXACTLY matches one of the options strings.`;
       mcqs: any[];
       mermaidCharts: string[];
     }>(rawText);
+
+    // ── Completeness guard ──
+    // The JSON fields are ordered with the arrays LAST, so a truncated AI
+    // response loses or shortens exactly the questions/MCQs/charts. If anything
+    // is missing or suspiciously short, run one focused follow-up call and MERGE
+    // the results in.
+    const missingSections: string[] = [];
+    if ((noteData.importantQuestions?.length || 0) < 3) missingSections.push("importantQuestions");
+    if ((noteData.mcqs?.length || 0) < 4) missingSections.push("mcqs");
+    if ((noteData.mermaidCharts?.length || 0) < 1) missingSections.push("mermaidCharts");
+
+    if (missingSections.length > 0) {
+      console.warn("Notes missing sections, generating supplement:", missingSections);
+      try {
+        const supplementPrompt = `You are an expert AI tutor. Based on the study notes below, generate ONLY the missing sections.
+
+Topic: "${topic}" (Level: "${classLevel}")
+Title: "${noteData.title || topic}"
+
+Notes summary: "${(noteData.summary || noteData.content || "").slice(0, 1200)}"
+
+Return ONLY a RAW JSON object (no markdown fences, no commentary) containing ALL of these keys:
+{
+  "importantQuestions": [
+    { "question": "Core concept question", "answer": "Detailed step-by-step answer" },
+    ... (exactly 5 questions covering: core concept, mechanism, comparison, real-world scenario, exam high-yield)
+  ],
+  "mcqs": [
+    { "question": "MCQ text", "options": ["Option A", "Option B", "Option C", "Option D"], "correctAnswer": "The exact string of the correct option" },
+    ... (exactly 6 MCQs)
+  ],
+  "mermaidCharts": [
+    "graph TD\\n  A[\\\"Label with $$formula$$\\\"] --> B[\\\"Next\\\"]",
+    ... (exactly 2 valid Mermaid flowcharts: every label double-quoted, formulas inside $$...$$, NEVER use | pipes inside $$ math — write \\\\vert instead, every backslash doubled because this is raw JSON)
+  ]
+}
+
+MATH RULES for question/answer text: use \\\\( ... \\\\) for inline and \\\\[ ... \\\\] for display math, always closed with the SAME delimiter, every backslash doubled (raw JSON).
+correctAnswer MUST exactly match one of the options strings.`;
+
+        const suppRes = await generateWithFallback({
+          contents: supplementPrompt,
+          config: {
+            responseMimeType: "application/json",
+            maxOutputTokens: 8192,
+          },
+        });
+        const supplement = parseAiJson<{
+          importantQuestions?: any[];
+          mcqs?: any[];
+          mermaidCharts?: string[];
+        }>(suppRes.text || "");
+
+        if (supplement.importantQuestions?.length) {
+          noteData.importantQuestions = [
+            ...(noteData.importantQuestions || []),
+            ...supplement.importantQuestions,
+          ];
+        }
+        if (supplement.mcqs?.length) {
+          noteData.mcqs = [...(noteData.mcqs || []), ...supplement.mcqs];
+        }
+        if (supplement.mermaidCharts?.length) {
+          noteData.mermaidCharts = [
+            ...(noteData.mermaidCharts || []),
+            ...supplement.mermaidCharts,
+          ];
+        }
+      } catch (suppErr: any) {
+        console.warn("Supplemental section generation failed (proceeding):", suppErr?.message || suppErr);
+      }
+    }
 
     // Normalize important questions structure
     const normalizedQuestions = (noteData.importantQuestions || []).map((q: any) => {

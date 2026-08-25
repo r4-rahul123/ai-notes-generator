@@ -27,7 +27,10 @@ interface ImportantQuestionsSectionProps {
 function formatAnswerMarkdown(text: string): string {
   if (!text) return "";
   return text
-    .replace(/\\n/g, "\n")
+    // Convert literal "\n" escapes to real newlines, but NEVER when followed by
+    // a lowercase letter — that is a LaTeX command (\nu, \nabla, \neq, \newline,
+    // \notin, ...) and splitting it breaks every math span in the answer.
+    .replace(/\\n(?![a-z])/g, "\n")
     .replace(/\r\n/g, "\n")
     .trim();
 }

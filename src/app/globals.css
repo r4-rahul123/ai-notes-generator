@@ -186,3 +186,76 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+@media print {
+  @page {
+    size: auto;
+    margin: 15mm 15mm;
+  }
+  
+  .no-print, nav, header, footer, button, .chat-section {
+    display: none !important;
+  }
+  
+  body, main, .min-h-screen {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Remove shadows, borders, and backgrounds from the main cards to make it look like a pure document */
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xs {
+    box-shadow: none !important;
+  }
+  
+  /* Improve page breaks */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  
+  .prose p, .prose ul, .prose ol {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .mermaid-wrapper, .page-break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ensure code blocks wrap nicely and have high contrast in print */
+  pre {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-x: hidden !important;
+    color: #1e293b !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+  
+  code {
+    color: #1e293b !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+  }
+
+  /* Make sure dark CodeBlock backgrounds don't wash out text */
+  [class*="bg-slate-900"], [class*="bg-slate-800"] {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  .break-before-page {
+    page-break-before: always;
+    break-before: page;
+  }
+}
+

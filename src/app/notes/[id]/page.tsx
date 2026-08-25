@@ -14,6 +14,7 @@ import ShareNoteButton from "@/components/ShareNoteButton";
 import NoteChat from "@/components/NoteChat";
 import CodeBlock from "@/components/CodeBlock";
 import ImportantQuestionsSection from "@/components/ImportantQuestionsSection";
+import AutoPrinter from "@/components/AutoPrinter";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import {
@@ -80,11 +81,15 @@ const customMarkdownComponents = {
     </blockquote>
   ),
   pre: ({ children }: any) => <>{children}</>,
-  code: ({ children, className, ...props }: any) => {
-    const isCodeBlock =
-      Boolean(className) ||
-      (typeof children === "string" && children.includes("\n"));
+  code: ({ node, inline, className, children, ...props }: any) => {
+    const match = /language-(\w+)/.exec(className || "");
+    const isCodeBlock = !inline && match;
+    const isMermaid = isCodeBlock && match[1] === "mermaid";
 
+    if (isMermaid) {
+      return <div className="my-6 rounded-xl overflow-hidden shadow-2xs border border-slate-200 dark:border-slate-700 page-break-inside-avoid"><MermaidRenderer chart={String(children).replace(/\n$/, "")} /></div>;
+    }
+    
     if (isCodeBlock) {
       return <CodeBlock className={className}>{children}</CodeBlock>;
     }
@@ -143,11 +148,12 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
 
   return (
     <>
+      <AutoPrinter />
       <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-10 px-4 sm:px-6">
         <div className="container max-w-4xl mx-auto">
 
           {/* Back button */}
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition-colors group">
+          <Link href="/dashboard" className="no-print inline-flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition-colors group">
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> Back to Dashboard
           </Link>
 
@@ -161,7 +167,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                 <span className="text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-600">
                   Level: {note.classLevel}
                 </span>
-                <span className="text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800 flex items-center gap-1.5 shadow-2xs">
+                <span className="text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:indigo-300 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800 flex items-center gap-1.5 shadow-2xs">
                   <Sparkles className="h-3 w-3 text-indigo-500" /> Vector Indexed (RAG)
                 </span>
               </div>
@@ -169,18 +175,25 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                 {note.title}
               </h1>
             </div>
-            <div className="flex-shrink-0 flex items-center gap-2.5 flex-wrap">
+            <div className="no-print flex-shrink-0 flex items-center gap-2.5 flex-wrap">
               <ShareNoteButton
                 noteId={note._id.toString()}
                 noteTitle={note.title}
                 topic={note.topic}
               />
-              <PDFExportButton noteId={note._id.toString()} filename={note.topic} />
+              <PDFExportButton
+                noteId={note._id.toString()}
+                filename={note.topic}
+                noteTitle={note.title}
+                topic={note.topic}
+                classLevel={note.classLevel}
+                createdAt={note.createdAt ? new Date(note.createdAt).toLocaleDateString() : undefined}
+              />
             </div>
           </div>
 
           {/* 🌟 Top MCQ Score & Performance Card Box */}
-          <div className="bg-gradient-to-r from-indigo-50/90 via-blue-50/70 to-purple-50/80 dark:from-slate-800 dark:via-slate-800 dark:to-indigo-950/40 rounded-2xl p-5 sm:p-6 mb-8 border border-indigo-200/80 dark:border-slate-700 shadow-sm animate-fade-in flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="no-print bg-gradient-to-r from-indigo-50/90 via-blue-50/70 to-purple-50/80 dark:from-slate-800 dark:via-slate-800 dark:to-indigo-950/40 rounded-2xl p-5 sm:p-6 mb-8 border border-indigo-200/80 dark:border-slate-700 shadow-sm animate-fade-in flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-start sm:items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-sm flex-shrink-0">
                 <Trophy className="h-6 w-6 text-amber-300" />
@@ -316,21 +329,83 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
             <Separator className="dark:bg-slate-700" />
 
             {/* Important Questions & Interactive Answers */}
-            <ImportantQuestionsSection
-              questions={note.importantQuestions || []}
-              topic={note.topic}
-              classLevel={note.classLevel}
-            />
+            <div className="no-print">
+              <ImportantQuestionsSection
+                questions={note.importantQuestions || []}
+                topic={note.topic}
+                classLevel={note.classLevel}
+              />
+            </div>
+
+            {/* Print-Only Important Questions */}
+            {(note.importantQuestions && note.importantQuestions.length > 0) && (
+              <div id="pdf-questions" className="hidden print:block mt-8 mb-8 break-before-page">
+                <h2 className="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">
+                  Important Exam Questions & Answers
+                </h2>
+                <div className="space-y-6">
+                  {note.importantQuestions.map((item: any, idx: number) => {
+                    const isObject = typeof item === "object" && item !== null;
+                    const qText = isObject ? item.question : String(item);
+                    const aText = isObject ? item.answer : "Answer not generated yet.";
+                    
+                    return (
+                      <div key={idx} className="page-break-inside-avoid mb-6">
+                        <div className="font-bold text-slate-900 mb-2 flex items-start gap-2">
+                          <span className="shrink-0">Q{idx + 1}.</span> 
+                          <div className="prose prose-slate max-w-none text-slate-900 font-bold">
+                            <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]} components={customMarkdownComponents}>{prepareMarkdown(qText)}</ReactMarkdown>
+                          </div>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 text-sm ml-8">
+                          <div className="font-bold mb-1 text-slate-900 page-break-after-avoid">Ans:</div>
+                          <div className="prose prose-slate max-w-none text-slate-800 text-sm">
+                            <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]} components={customMarkdownComponents}>{prepareMarkdown(aText || "Answer not available.")}</ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Interactive MCQ Practice Section with History & Retry */}
-          <div className="mt-12 bg-white dark:bg-slate-800/90 p-6 sm:p-10 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm animate-fade-in-up">
+          <div className="no-print mt-12 bg-white dark:bg-slate-800/90 p-6 sm:p-10 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm animate-fade-in-up">
             <MCQSection
               noteId={note._id.toString()}
               initialMcqs={note.mcqs || []}
               initialAttempts={note.quizAttempts || []}
             />
           </div>
+
+          {/* Print-Only MCQs Q&A */}
+          {(note.mcqs && note.mcqs.length > 0) && (
+            <div id="pdf-mcqs" className="hidden print:block mt-8 mb-8 break-before-page">
+              <h2 className="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">
+                Practice MCQs & Solutions
+              </h2>
+              <div className="space-y-6">
+                {note.mcqs.map((mcq: any, idx: number) => (
+                  <div key={idx} className="page-break-inside-avoid mb-6">
+                    <div className="font-bold text-slate-900 mb-2 flex items-start gap-2">
+                      <span>{idx + 1}.</span> 
+                      <div className="prose prose-slate max-w-none text-slate-900 font-bold">
+                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]} components={customMarkdownComponents}>{prepareMarkdown(mcq.question)}</ReactMarkdown>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-900 text-sm ml-6">
+                      <div className="font-bold mb-1 page-break-after-avoid">Answer:</div>
+                      <div className="prose prose-slate max-w-none text-green-900 text-sm">
+                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]} components={customMarkdownComponents}>{prepareMarkdown(mcq.correctAnswer)}</ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

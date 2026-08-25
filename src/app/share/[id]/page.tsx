@@ -198,10 +198,18 @@ export default async function SharedNotePage({
                 noteTitle={note.title}
                 topic={note.topic}
               />
-              <PDFExportButton noteId={note._id.toString()} filename={note.topic} />
+              <PDFExportButton
+                noteId={note._id.toString()}
+                filename={note.topic}
+                noteTitle={note.title}
+                topic={note.topic}
+                classLevel={note.classLevel}
+                createdAt={new Date(note.createdAt).toLocaleDateString()}
+              />
             </div>
           </div>
 
+          <div id="note-content" className="space-y-8">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white leading-tight">
             {note.title}
           </h1>
@@ -307,6 +315,8 @@ export default async function SharedNotePage({
             </div>
           </section>
         )}
+
+        </div>
 
         {/* ── 4. Important Questions & Answers ── */}
         {normalizedQuestions.length > 0 && (

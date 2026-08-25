@@ -23,20 +23,16 @@ export function sanitizeMermaid(code: string): string {
   // is followed by whitespace, so LaTeX commands such as `\nabla` stay intact.
   clean = clean.replace(/\r\n/g, "\n").replace(/\\n(?=\s)/g, "\n");
 
-  // Decode HTML entities that can appear when AI-generated text is stored/retrieved
-  // via HTML context. KaTeX cannot parse &lt; &gt; &amp; - they must be raw chars.
-  clean = clean
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-
   // Mermaid uses $$...$$ for KaTeX. Normalize Markdown-style math emitted by
   // older prompts so formulas in already-saved charts are typeset as well.
   clean = clean
     .replace(/\\\[([\s\S]*?)\\\]/g, (_match, formula: string) => `$$${formula.trim()}$$`)
     .replace(/\\\(([\s\S]*?)\\\)/g, (_match, formula: string) => `$$${formula.trim()}$$`);
+
+  // Protect | pipes inside $$ math BEFORE anything else. Mermaid's parser treats
+  // | as an edge delimiter even inside quoted node labels, so bra-ket notation
+  // like $$|\psi\rangle$$ breaks the whole chart. \vert renders identically.
+  clean = clean.replace(/\$\$([\s\S]*?)\$\$/g, (_match, math: string) => `$$${math.replace(/\\?\|/g, "\\vert ")}$$`);
 
   // Strip markdown code fences
   clean = clean.replace(/^```(?:mermaid)?\s*/i, "").replace(/\s*```$/i, "").trim();
@@ -75,6 +71,17 @@ export function sanitizeMermaid(code: string): string {
         }
         // Replace only unquoted double-quotes to avoid breaking $$ math
         inner = inner.replace(/(?<!\\)"/g, "'").trim();
+        // Replace < and > inside KaTeX with KaTeX-safe \lt and \gt macros
+        inner = inner.replace(/\$\$([\s\S]*?)\$\$/g, (m: string, math: string) => {
+          let safeMath = math.replace(/</g, " \\lt ").replace(/>/g, " \\gt ");
+          // Fix unbraced superscripts/subscripts and double-escaped macros (e.g. A^\\dagger -> A^{\dagger})
+          safeMath = safeMath.replace(/(\^|_)\\{1,2}([a-zA-Z]+)(?!\{)/g, "$1{\\$2}");
+          // Also fix double-escaped macros globally in math block (e.g. \\langle -> \langle) to prevent KaTeX newline errors
+          safeMath = safeMath.replace(/\\\\([a-zA-Z]+)/g, "\\$1");
+          return "$$" + safeMath + "$$";
+        });
+        // Outside KaTeX, ensure < doesn't look like an HTML tag by adding a space
+        inner = inner.replace(/<([a-zA-Z])/g, "< $1");
         return `${id}["${inner}"]`;
       }
     );
@@ -88,6 +95,13 @@ export function sanitizeMermaid(code: string): string {
           inner = inner.slice(1, -1);
         }
         inner = inner.replace(/(?<!\\)"/g, "'").trim();
+        inner = inner.replace(/\$\$([\s\S]*?)\$\$/g, (m: string, math: string) => {
+          let safeMath = math.replace(/</g, " \\lt ").replace(/>/g, " \\gt ");
+          safeMath = safeMath.replace(/(\^|_)\\{1,2}([a-zA-Z]+)(?!\{)/g, "$1{\\$2}");
+          safeMath = safeMath.replace(/\\\\([a-zA-Z]+)/g, "\\$1");
+          return "$$" + safeMath + "$$";
+        });
+        inner = inner.replace(/<([a-zA-Z])/g, "< $1");
         return `${id}("${inner}")`;
       }
     );

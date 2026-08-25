@@ -52,7 +52,7 @@ function cleanForPdf(text: string): string {
       /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,
       ""
     )
-    .replace(/[^\x00-\x7F]/g, "") // Ensure pure ASCII compatibility for jsPDF standard fonts
+    .replace(/[^\x00-\xFF]/g, "") // Ensure compatibility for jsPDF standard fonts (WinAnsi 0-255)
     .trim();
 }
 
@@ -440,6 +440,25 @@ export async function GET(
         }
       }
       yPos += 14;
+    }
+
+    // ── Mermaid Charts (if any) ──
+    if (note.mermaidCharts && Array.isArray(note.mermaidCharts) && note.mermaidCharts.length > 0) {
+      checkPageBreak(50);
+      doc.setFillColor(239, 246, 255);
+      doc.setDrawColor(147, 197, 253);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(margin, yPos, contentWidth, 32, 4, 4, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(37, 99, 235);
+      doc.text(`Attached Diagrams (${note.mermaidCharts.length})`, margin + 10, yPos + 12);
+      
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(9);
+      doc.setTextColor(51, 65, 85);
+      doc.text("Interactive flowcharts and concept maps are available in the web version.", margin + 10, yPos + 22);
+      yPos += 45;
     }
 
     // ── 3. Quick Revision Notes ──

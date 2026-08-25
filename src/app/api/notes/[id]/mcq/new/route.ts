@@ -59,6 +59,7 @@ REQUIREMENTS:
 - Each question must have exactly 4 options.
 - The "correctAnswer" string must EXACTLY match one of the options.
 - In questions and options, wrap inline math in \\\\( ... \\\\) and display math in \\\\[ ... \\\\]. Never emit bare LaTeX or use dollar signs.
+- Every math span must open and close with the SAME delimiter: \\\\( closes with \\\\) and \\\\[ closes with \\\\]. Never mix styles or leave a span unclosed.
 - Because the response is raw JSON, escape every LaTeX backslash as a double backslash. Example raw JSON string: "\\\\(x = \\\\frac{1}{2}\\\\)".
 - Return ONLY valid RAW JSON matching this structure:
 {
