@@ -66,12 +66,12 @@ Return ONLY a RAW JSON object (no markdown fences, no commentary) containing ALL
   ]
 }
 
-Provide at least 6 MCQs and at least 2 mermaid charts. In Mermaid charts:
-- ALWAYS wrap every node label in double quotes, like A[\"Label (with details)\"].
-- Mermaid math is different from content-field math: wrap every formula in $$...$$ inside the quoted label.
-- NEVER use the | pipe character inside $$...$$ math in labels - write \\\\vert instead.
-- Because the chart is inside JSON, escape every LaTeX backslash as a double backslash.
-Make sure correctAnswer EXACTLY matches one of the options strings.`;
+  Provide at least 6 MCQs and at least 2 mermaid charts.
+  CRITICAL MATH INSTRUCTIONS:
+  - For standard Markdown fields (content, summary, shortNotes, etc): Use $...$ for inline math (e.g. $A = \pi r^2$) and $$...$$ ONLY for standalone display equations on a new line. Never use $$ for inline variables. Use proper LaTeX (e.g. \\frac).
+  - For Mermaid charts: ALWAYS wrap every node label in double quotes, like A[\"Label (with details)\"]. Wrap every formula in $$...$$ inside the quoted label. NEVER use the | pipe character inside math in labels - write \\vert instead.
+  - Because you are returning JSON, you MUST escape every LaTeX backslash as a double backslash (e.g. \\\\frac).
+  Make sure correctAnswer EXACTLY matches one of the options strings.`;
 
       await job.updateProgress(30); // Requesting AI generation
 
