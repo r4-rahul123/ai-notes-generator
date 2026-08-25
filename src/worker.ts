@@ -36,7 +36,7 @@ Return ONLY a RAW JSON object (no markdown fences, no commentary) containing ALL
 {
   "title": "A concise title",
   "summary": "A 2-3 sentence overview.",
-  "content": "Detailed HTML-like string with h1, h2, ul, li tags for structuring the core notes...",
+  "content": "Detailed Markdown string using ## for headings, ** for bold, and - for bullet points to structure the core notes. Do NOT use raw HTML tags.",
   "shortNotes": "Brief bullet points for quick revision.",
   "importantQuestions": [
     {

@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
 import { prepareMarkdown } from "@/lib/prepareMarkdown";
 import MermaidRenderer from "@/components/MermaidRenderer";
 import MCQSection from "@/components/MCQSection";
@@ -248,7 +249,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-base sm:text-lg space-y-3">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath, remarkGfm]}
-                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }], rehypeRaw]}
                 >
                   {prepareMarkdown(note.summary)}
                 </ReactMarkdown>
@@ -271,7 +272,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               <div className="prose prose-slate dark:prose-invert max-w-none">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath, remarkGfm]}
-                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }], rehypeRaw]}
                   components={customMarkdownComponents}
                 >
                   {prepareMarkdown(note.content)}
@@ -318,7 +319,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               <div className="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath, remarkGfm]}
-                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]}
+                  rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }], rehypeRaw]}
                   components={customMarkdownComponents}
                 >
                   {prepareMarkdown(note.shortNotes)}
@@ -354,13 +355,13 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                         <div className="font-bold text-slate-900 mb-2 flex items-start gap-2">
                           <span className="shrink-0">Q{idx + 1}.</span> 
                           <div className="prose prose-slate max-w-none text-slate-900 font-bold">
-                            <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]} components={customMarkdownComponents}>{prepareMarkdown(qText)}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }], rehypeRaw]} components={customMarkdownComponents}>{prepareMarkdown(qText)}</ReactMarkdown>
                           </div>
                         </div>
                         <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 text-sm ml-8">
                           <div className="font-bold mb-1 text-slate-900 page-break-after-avoid">Ans:</div>
                           <div className="prose prose-slate max-w-none text-slate-800 text-sm">
-                            <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]} components={customMarkdownComponents}>{prepareMarkdown(aText || "Answer not available.")}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }], rehypeRaw]} components={customMarkdownComponents}>{prepareMarkdown(aText || "Answer not available.")}</ReactMarkdown>
                           </div>
                         </div>
                       </div>
@@ -392,13 +393,13 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                     <div className="font-bold text-slate-900 mb-2 flex items-start gap-2">
                       <span>{idx + 1}.</span> 
                       <div className="prose prose-slate max-w-none text-slate-900 font-bold">
-                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]} components={customMarkdownComponents}>{prepareMarkdown(mcq.question)}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }], rehypeRaw]} components={customMarkdownComponents}>{prepareMarkdown(mcq.question)}</ReactMarkdown>
                       </div>
                     </div>
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-900 text-sm ml-6">
                       <div className="font-bold mb-1 page-break-after-avoid">Answer:</div>
                       <div className="prose prose-slate max-w-none text-green-900 text-sm">
-                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }]]} components={customMarkdownComponents}>{prepareMarkdown(mcq.correctAnswer)}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, output: "html" }], rehypeRaw]} components={customMarkdownComponents}>{prepareMarkdown(mcq.correctAnswer)}</ReactMarkdown>
                       </div>
                     </div>
                   </div>
