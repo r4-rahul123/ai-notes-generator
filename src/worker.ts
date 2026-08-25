@@ -9,6 +9,14 @@ import User from './lib/models/User';
 import { generateWithFallback } from './lib/gemini';
 import { parseAiJson } from './lib/parseAiJson';
 import { indexDocument } from './lib/rag/vectorSearch';
+import * as http from 'http';
+
+// Dummy HTTP server to satisfy Render's Web Service port binding requirement (so it's free)
+const PORT = process.env.PORT || 8080;
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end('AI Worker is alive and processing background jobs.\\n');
+}).listen(PORT, () => console.log(`Worker health server listening on port ${PORT}`));
 
 console.log('Starting Notes Generation Worker...');
 
