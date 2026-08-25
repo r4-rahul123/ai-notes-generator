@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -28,6 +29,9 @@ import {
   ListFilter,
   CheckCircle2,
   X,
+  LineChart,
+  BrainCircuit,
+  Trash2,
 } from "lucide-react";
 
 interface NoteItem {
@@ -55,9 +59,32 @@ export default function DashboardClient({
   initialNotes,
   userCredits,
 }: DashboardClientProps) {
+  const router = useRouter();
+  const [notesList, setNotesList] = useState<NoteItem[]>(initialNotes);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "score" | "title">("newest");
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (noteId: string) => {
+    if (!window.confirm("Are you sure you want to delete this note?")) return;
+    
+    setIsDeleting(noteId);
+    try {
+      const res = await fetch(`/api/notes/${noteId}`, { method: "DELETE" });
+      if (res.ok) {
+        setNotesList((prev) => prev.filter((n) => n._id !== noteId));
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete note");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   // ── 1. Calculate Student Study Analytics (Feature 5) ──
   const analytics = useMemo(() => {
@@ -66,7 +93,7 @@ export default function DashboardClient({
     let totalQuestionsAnswered = 0;
     let totalCharts = 0;
 
-    initialNotes.forEach((note) => {
+    notesList.forEach((note) => {
       totalCharts += note.mermaidCharts?.length || 0;
       if (note.quizAttempts && note.quizAttempts.length > 0) {
         note.quizAttempts.forEach((att) => {
@@ -83,26 +110,26 @@ export default function DashboardClient({
         : 0;
 
     return {
-      totalNotes: initialNotes.length,
+      totalNotes: notesList.length,
       totalAttempts,
       averageAccuracy,
       totalCharts,
       totalQuestionsAnswered,
     };
-  }, [initialNotes]);
+  }, [notesList]);
 
   // Extract unique class levels for filter chips
   const classLevels = useMemo(() => {
     const levels = new Set<string>();
-    initialNotes.forEach((n) => {
+    notesList.forEach((n) => {
       if (n.classLevel) levels.add(n.classLevel.trim());
     });
     return ["all", ...Array.from(levels)];
-  }, [initialNotes]);
+  }, [notesList]);
 
   // ── 2. Filter & Sort Notes (Feature 3) ──
   const filteredNotes = useMemo(() => {
-    return initialNotes
+    return notesList
       .filter((note) => {
         // Level filter
         if (selectedLevel !== "all" && note.classLevel.toLowerCase() !== selectedLevel.toLowerCase()) {
@@ -135,7 +162,7 @@ export default function DashboardClient({
         }
         return 0;
       });
-  }, [initialNotes, searchQuery, selectedLevel, sortBy]);
+  }, [notesList, searchQuery, selectedLevel, sortBy]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
@@ -302,13 +329,13 @@ export default function DashboardClient({
             ))}
 
             <span className="ml-auto text-xs font-medium text-slate-400 font-mono">
-              Showing {filteredNotes.length} of {initialNotes.length}
+              Showing {filteredNotes.length} of {notesList.length}
             </span>
           </div>
         </div>
 
         {/* ── Notes Grid ── */}
-        {initialNotes.length === 0 ? (
+        {notesList.length === 0 ? (
           /* Empty Notes State */
           <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
             <FileText className="h-14 w-14 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
@@ -425,6 +452,18 @@ export default function DashboardClient({
 
                     {/* PDF Export Button */}
                     <PDFExportButton noteId={note._id} />
+
+                    {/* Delete Button */}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/20 px-2"
+                      onClick={() => handleDelete(note._id)}
+                      disabled={isDeleting === note._id}
+                      title="Delete Note"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </CardFooter>
                 </Card>
               );
