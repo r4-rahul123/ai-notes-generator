@@ -50,6 +50,12 @@ export async function POST(req: Request) {
       pdfContent,
     });
 
+    // PING THE RENDER WORKER TO WAKE IT UP (Fire and forget)
+    // Free Render Web Services sleep after 15 mins. Since Redis doesn't wake them up, this HTTP ping will.
+    if (process.env.WORKER_URL) {
+      fetch(process.env.WORKER_URL).catch(e => console.warn("Worker ping failed:", e.message));
+    }
+
     // Return the Job ID so the frontend can poll its status
     return NextResponse.json({ success: true, jobId: job.id }, { status: 202 });
   } catch (error: any) {
