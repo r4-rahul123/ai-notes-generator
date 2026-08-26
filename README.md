@@ -125,6 +125,9 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 
 # Redis (For Background Jobs & Rate Limiting)
 REDIS_URL=redis://127.0.0.1:6380
+
+# Worker Wake-up Ping (Only needed in production if using Free Render tier)
+WORKER_URL=https://ai-notes-worker-xxxx.onrender.com
 ```
 
 ---
@@ -174,6 +177,7 @@ Because Vercel serverless functions timeout, the heavy AI PDF parsing and note g
 1. Go to [vercel.com](https://vercel.com) and click **"Add New Project"**.
 2. Import this GitHub repository.
 3. Add ALL your Environment Variables from `.env.local` into Vercel settings.
-4. Click **Deploy**.
+4. **Crucial for Free Tier:** Add a new variable `WORKER_URL` with the URL of your Render Web Service (e.g., `https://ai-notes-worker.onrender.com`). This ensures Vercel wakes up the Render worker if it goes to sleep!
+5. Click **Deploy**.
 
 Your app is now live with a public URL! Visitors can generate notes and the Render worker will process them seamlessly in the background.
