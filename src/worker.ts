@@ -89,10 +89,10 @@ Return ONLY a RAW JSON object (no markdown fences, no commentary) containing ALL
       await job.updateProgress(60); // AI generation complete
 
       const noteData = parseAiJson<{
-        title: string;
-        summary: string;
-        content: string;
-        shortNotes: string;
+        title: string | string[];
+        summary: string | string[];
+        content: string | string[];
+        shortNotes: string | string[];
         importantQuestions: any[];
         mcqs: any[];
         mermaidCharts: string[];
@@ -168,7 +168,7 @@ Return ONLY a RAW JSON object with:
         title: typeof noteData.title === 'string' ? noteData.title : (Array.isArray(noteData.title) ? noteData.title.join(' ') : "Generated Notes"),
         summary: typeof noteData.summary === 'string' ? noteData.summary : (Array.isArray(noteData.summary) ? noteData.summary.join('\n') : "Summary not provided by AI."),
         content: typeof noteData.content === 'string' ? noteData.content : (Array.isArray(noteData.content) ? noteData.content.join('\n') : "Content not provided by AI."),
-        shortNotes: typeof noteData.shortNotes === 'string' ? noteData.shortNotes : (Array.isArray(noteData.shortNotes) ? noteData.shortNotes.map(s => `- ${s}`).join('\n') : "No short notes generated."),
+        shortNotes: typeof noteData.shortNotes === 'string' ? noteData.shortNotes : (Array.isArray(noteData.shortNotes) ? noteData.shortNotes.map((s: string) => `- ${s}`).join('\n') : "No short notes generated."),
         importantQuestions: normalizedQuestions.map((q: any) => ({
           question: q.question || "Untitled question",
           answer: q.answer || "No answer provided.",
