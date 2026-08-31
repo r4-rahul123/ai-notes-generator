@@ -99,7 +99,7 @@ export default function Home() {
             {highlights.map((h, i) => (
               <div
                 key={i}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-2xs"
+                className="flex items-center gap-1.5 px-2 py-1 text-slate-600 dark:text-slate-400"
               >
                 {h.icon}
                 <span>{h.label}</span>
@@ -109,7 +109,7 @@ export default function Home() {
         </div>
 
         {/* How It Works / 3 Interactive Guide Cards */}
-        <div className="space-y-6 pt-4">
+        <div className="space-y-6 pt-12">
           <div className="text-center space-y-1">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
               How AI Notes Works
@@ -124,7 +124,7 @@ export default function Home() {
               <Link
                 key={item.title}
                 href={item.href}
-                className="group relative bg-white dark:bg-white/[0.04] backdrop-blur-xl p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 flex flex-col justify-between"
+                className="group relative bg-white dark:bg-white/[0.04] backdrop-blur-xl p-6 pb-8 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:-translate-y-1 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 flex flex-col justify-between"
               >
                 <div>
                   {/* Top Bar: Icon + Step Badge */}
@@ -133,7 +133,7 @@ export default function Home() {
                       {item.icon}
                     </div>
                     <span
-                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${item.badgeColor}`}
+                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${item.badgeColor}`}
                     >
                       {item.badge}
                     </span>

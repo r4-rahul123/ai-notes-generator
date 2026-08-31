@@ -27,7 +27,7 @@ export default async function Navbar() {
                   <Button variant="ghost" className="dark:text-slate-200 dark:hover:bg-slate-800">Dashboard</Button>
                 </Link>
                 <Link href="/pricing">
-                  <Button variant="ghost" className="dark:text-slate-200 dark:hover:bg-slate-800">Buy Credits</Button>
+                  <Button variant="secondary" className="dark:text-slate-200">Buy Credits</Button>
                 </Link>
                 <UserButton />
               </>

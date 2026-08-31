@@ -127,6 +127,14 @@ export default function DashboardClient({
     return ["all", ...Array.from(levels)];
   }, [notesList]);
 
+  const formatLevel = (lvl: string) => {
+    if (lvl === "all") return "All Levels";
+    let formatted = lvl.replace(/_/g, " ").replace(/-/g, " ");
+    formatted = formatted.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    if (formatted.toLowerCase() === "phd") return "PhD";
+    return formatted;
+  };
+
   // ── 2. Filter & Sort Notes (Feature 3) ──
   const filteredNotes = useMemo(() => {
     return notesList
@@ -183,21 +191,13 @@ export default function DashboardClient({
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Credits badge */}
-            <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-4 py-2 rounded-full font-semibold border border-amber-200 dark:border-amber-800/80 text-sm shadow-xs">
-              <Coins className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <span>{userCredits} Credits</span>
+            {/* Credits indicator */}
+            <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-500 font-semibold text-sm px-2">
+              <Coins className="h-4 w-4" />
+              <span>{userCredits} Credits Available</span>
             </div>
-            <Link href="/pricing">
-              <Button
-                variant="outline"
-                className="dark:border-white/[0.08] dark:text-slate-200 dark:hover:bg-slate-800 text-sm"
-              >
-                Buy Credits
-              </Button>
-            </Link>
             <Link href="/generate">
-              <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 font-semibold text-sm">
+              <Button className="gap-2 shadow-md shadow-blue-500/20 font-semibold text-sm">
                 <PlusCircle className="h-4 w-4" /> New Note
               </Button>
             </Link>
@@ -308,7 +308,7 @@ export default function DashboardClient({
           </div>
 
           {/* Level Filter Chips */}
-          <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-slate-100 dark:border-white/[0.08]/60">
+          <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-100 dark:border-white/[0.08]/60">
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1 flex items-center gap-1">
               <ListFilter className="h-3.5 w-3.5" /> Filter Level:
             </span>
@@ -317,19 +317,21 @@ export default function DashboardClient({
                 key={lvl}
                 suppressHydrationWarning
                 onClick={() => setSelectedLevel(lvl)}
-                className={`text-xs font-semibold px-3 py-1 rounded-full transition-all capitalize ${
+                className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all ${
                   selectedLevel === lvl
                     ? "bg-blue-600 text-white shadow-xs"
                     : "bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
-                {lvl === "all" ? "All Levels" : lvl}
+                {formatLevel(lvl)}
               </button>
             ))}
 
-            <span className="ml-auto text-xs font-medium text-slate-400 font-mono">
-              Showing {filteredNotes.length} of {notesList.length}
-            </span>
+            <div className="ml-auto flex items-center">
+              <span className="text-xs font-medium text-slate-400 font-mono">
+                Showing {filteredNotes.length} of {notesList.length}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -387,21 +389,23 @@ export default function DashboardClient({
                   className="group relative border border-slate-200/80 dark:border-white/[0.1] bg-white dark:bg-white/[0.03] backdrop-blur-2xl rounded-[1.5rem] shadow-xs flex flex-col justify-between overflow-hidden transition-all duration-500 ease-out hover:shadow-2xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/20 hover:-translate-y-1.5 hover:border-indigo-500/30 dark:hover:border-indigo-400/30"
                 >
                   {/* Delete Button (Top Right) */}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleDelete(note._id)}
                     disabled={isDeleting === note._id}
-                    className="absolute top-3 right-3 p-2 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50"
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors z-10"
                     title="Delete Note"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </button>
+                  </Button>
 
                   <CardHeader className="pb-3 pt-6">
                     <div className="flex items-center gap-2 mb-2 pr-8">
-                      <span className="text-[11px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-200/70 dark:border-blue-800/70 truncate">
+                      <span className="text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-200/70 dark:border-blue-800/70 truncate">
                         {note.topic}
                       </span>
-                      <span className="text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full shrink-0">
+                      <span className="text-xs font-semibold bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full shrink-0">
                         {note.classLevel}
                       </span>
                     </div>

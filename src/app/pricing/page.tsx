@@ -19,11 +19,13 @@ const packages = [
     badge: null,
     popular: false,
     features: [
-      "10 AI Note Generations",
-      "Interactive Mermaid Flowcharts",
-      "Exam Practice MCQs with Scoring",
-      "Full Study PDF Downloads",
-      "Text & PDF Input Support",
+      { text: "10 AI Note Generations", active: true },
+      { text: "Interactive Mermaid Flowcharts", active: true },
+      { text: "Exam Practice MCQs with Scoring", active: true },
+      { text: "Full Study PDF Downloads", active: true },
+      { text: "Text & PDF Input Support", active: true },
+      { text: "Grounded RAG AI Tutor Chatbot", active: false },
+      { text: "Priority Gemini 3.5 AI Engine", active: false },
     ],
     color: "blue",
   },
@@ -34,17 +36,18 @@ const packages = [
     price: 119,
     priceString: "₹119",
     originalPrice: "₹150",
-    discount: "21% OFF",
+    discount: "21% Off",
     perCredit: "₹3.9 / note",
     badge: "Most Popular",
     popular: true,
     features: [
-      "30 AI Note Generations",
-      "Interactive Mermaid Flowcharts",
-      "Exam Practice MCQs with Scoring",
-      "High-Res Multi-page PDF Exports",
-      "Grounded RAG AI Tutor Chatbot",
-      "Priority Gemini 3.5 AI Engine",
+      { text: "30 AI Note Generations", active: true },
+      { text: "Interactive Mermaid Flowcharts", active: true },
+      { text: "Exam Practice MCQs with Scoring", active: true },
+      { text: "High-Res Multi-page PDF Exports", active: true },
+      { text: "Grounded RAG AI Tutor Chatbot", active: true },
+      { text: "Priority Gemini 3.5 AI Engine", active: true },
+      { text: "Unlimited Vector Embeddings", active: false },
     ],
     color: "blue",
   },
@@ -55,18 +58,18 @@ const packages = [
     price: 299,
     priceString: "₹299",
     originalPrice: "₹500",
-    discount: "40% MEGA DISCOUNT",
+    discount: "40% Off",
     perCredit: "₹2.99 / note",
     badge: "Best Value",
     popular: false,
     features: [
-      "100 AI Note Generations",
-      "Interactive Mermaid Flowcharts",
-      "Exam Practice MCQs with Scoring",
-      "High-Res Multi-page PDF Exports",
-      "Grounded RAG AI Tutor Chatbot",
-      "Unlimited Vector Search Embeddings",
-      "Credits Never Expire (Lifetime)",
+      { text: "100 AI Note Generations", active: true },
+      { text: "Interactive Mermaid Flowcharts", active: true },
+      { text: "Exam Practice MCQs with Scoring", active: true },
+      { text: "High-Res Multi-page PDF Exports", active: true },
+      { text: "Grounded RAG AI Tutor Chatbot", active: true },
+      { text: "Priority Gemini 3.5 AI Engine", active: true },
+      { text: "Unlimited Vector Embeddings", active: true },
     ],
     color: "purple",
   },
@@ -189,20 +192,16 @@ export default function PricingPage() {
                 }`}
               >
                 {/* Badges */}
-                {pkg.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-md whitespace-nowrap">
-                    <Star className="h-3 w-3 fill-white" /> {pkg.badge}
-                  </div>
-                )}
-                {pkg.discount && !pkg.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white px-3.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-md whitespace-nowrap">
-                    <Sparkles className="h-3 w-3 fill-white" /> {pkg.discount}
+                {pkg.badge && (
+                  <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 ${pkg.popular ? "bg-blue-600" : "bg-purple-600"} text-white px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-md whitespace-nowrap`}>
+                    {pkg.popular ? <Star className="h-3 w-3 fill-white" /> : <Sparkles className="h-3 w-3 fill-white" />} 
+                    {pkg.badge}
                   </div>
                 )}
 
                 <div className="mb-4">
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{pkg.name}</h2>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300 text-xs font-bold">
                     ⚡ {pkg.credits} Credits included
                   </div>
                 </div>
@@ -227,22 +226,22 @@ export default function PricingPage() {
 
                 <ul className="space-y-3 mb-8 flex-1">
                   {pkg.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-                      <div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-950/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check className="h-2.5 w-2.5 text-green-600 dark:text-green-400" />
+                    <li key={f.text} className={`flex items-start gap-2.5 text-xs sm:text-sm ${f.active ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400 dark:text-slate-600 opacity-60'}`}>
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${f.active ? 'bg-green-100 dark:bg-green-950/40' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                        {f.active && <Check className="h-2.5 w-2.5 text-green-600 dark:text-green-400" />}
                       </div>
-                      <span>{f}</span>
+                      <span>{f.text}</span>
                     </li>
                   ))}
                 </ul>
 
                 <Button
-                  className={`w-full h-11 font-semibold rounded-xl ${
+                  className={`w-full h-11 font-semibold ${
                     pkg.popular
                       ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25"
-                      : "border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700"
+                      : ""
                   }`}
-                  variant={pkg.popular ? "default" : "outline"}
+                  variant={pkg.popular ? "default" : "secondary"}
                   onClick={() => handleCheckout(pkg)}
                   disabled={loading !== null}
                 >
